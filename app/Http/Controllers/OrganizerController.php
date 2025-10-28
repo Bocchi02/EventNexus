@@ -12,12 +12,19 @@ class OrganizerController extends Controller
      */
     public function dashboard()
     {
-        $events = Event::where('organizer_id', auth()->id())
-                       ->orderBy('start_date', 'desc')
-                       ->get();
+        $organizerId = auth()->id();
 
-        return view('organizer.dashboard', compact('events'));
+        $totalEvents = Event::where('organizer_id', $organizerId)->count();
+        $upcomingEvents = Event::where('organizer_id', $organizerId)
+                                ->where('status', 'upcoming')
+                                ->count();
+        $completedEvents = Event::where('organizer_id', $organizerId)
+                                ->where('status', 'completed')
+                                ->count();
+
+        return view('organizer.dashboard', compact('totalEvents', 'upcomingEvents', 'completedEvents'));
     }
+
 
     /**
      * Show all events for the organizer
@@ -140,6 +147,24 @@ class OrganizerController extends Controller
         $event->update($data);
 
         return redirect()->back()->with('success', 'Event updated successfully.');
+    }
+
+    /**
+     *  View Event Description Huehuehuehue
+     */
+    public function show($id)
+    {
+        $event = Event::where('organizer_id', auth()->id())->findOrFail($id);
+        return view('organizer.show', compact('event'));
+    }
+
+    /** 
+     * Edit Event 
+     */
+    public function editEvent($id)
+    {
+        $event = Event::where('organizer_id', auth()->id())->findOrFail($id);
+        return view('organizer.edit', compact('event'));
     }
 
     /**

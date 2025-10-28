@@ -2,7 +2,13 @@
 
 @section('content')
 <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between">
+    <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between"></h1>
+    <a href="{{ route('organizer.dashboard') }}"
+        class="text-blue-400">Back to Dashboard HUEHUEHUE</a>
+</div>
+
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-4 text-black-100 flex justify-between">
         My Events
         <button onclick="document.getElementById('addEventForm').classList.toggle('hidden')"
             class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">
@@ -131,7 +137,8 @@
                     </td>
                     <td class="px-4 py-2 text-right">
                         <div class="flex gap-2 justify-end">
-                            <a href="#" class="text-blue-400 hover:text-blue-300">View</a>
+                            <a href="{{ route('organizer.showEvent', $event->id) }}" class="text-blue-400 hover:text-blue-300">View</a>
+                            <a href="{{ route('organizer.editEvent', $event->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                             <form method="POST" action="{{ route('organizer.deleteEvent', $event->id) }}" class="inline">
                                 @csrf
                                 @method('DELETE')
