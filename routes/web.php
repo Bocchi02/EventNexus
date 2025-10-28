@@ -36,6 +36,11 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->group(function () {
 // Organizer Routes
 Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function () {
     Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard'])->name('organizer.dashboard');
+    Route::get('/organizer/events', [OrganizerController::class, 'events'])->name('organizer.events');
+    Route::post('/organizer/events/store', [OrganizerController::class, 'storeEvent'])->name('organizer.storeEvent');
+    Route::post('/organizer/events/{id}/update', [OrganizerController::class, 'updateEvent'])->name('organizer.updateEvent');
+    Route::delete('/organizer/events/{id}', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
+    Route::post('/organizer/events/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])->name('organizer.toggleStatus');
 });
 
 

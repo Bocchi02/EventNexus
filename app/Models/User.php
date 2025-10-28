@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return trim($this->first_name . ' ' . ($this->middle_name ?? '') . ' ' . $this->last_name);
     }
+
+    public function events()
+    {
+        return $this->hasMany(Event::class);
+    }
 }
