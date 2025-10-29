@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4 text-gray-100">Admin Dashboard</h1>
+    <h1 class="text-2xl font-bold mb-4 text-black-100">Admin Dashboard</h1>
     <div class="grid md:grid-cols-3 gap-6">
         <div class="bg-gray-800 p-4 rounded-lg shadow">
             <h2 class="text-lg font-semibold text-gray-200">Total Users</h2>

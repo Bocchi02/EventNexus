@@ -4,7 +4,7 @@
 <div class="container mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between"></h1>
     <a href="{{ route('organizer.dashboard') }}"
-        class="text-blue-400">Back to Dashboard HUEHUEHUE</a>
+        class="text-blue-400">Back to Dashboard</a>
 </div>
 
 <div class="container mx-auto p-6">
@@ -40,6 +40,19 @@
         <form method="POST" action="{{ route('organizer.storeEvent') }}" enctype="multipart/form-data">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-gray-300">Assign Client</label>
+                    <select name="client_id" required 
+                        class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
+                        <option value="">-- Select Client --</option>
+                        
+                        @foreach ($clients as $client)
+                            <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>
+                                {{ $client->full_name }} 
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="md:col-span-2">
                     <label class="block text-gray-300">Event Title</label>
                     <input type="text" name="title" value="{{ old('title') }}" required 
@@ -98,6 +111,7 @@
             <thead class="bg-gray-700">
                 <tr>
                     <th class="px-4 py-2 text-left">Cover</th>
+                    <th class="px-4 py-2 text-left">Client</th>
                     <th class="px-4 py-2 text-left">Title</th>
                     <th class="px-4 py-2 text-left">Venue</th>
                     <th class="px-4 py-2 text-left">Start Date</th>
@@ -119,6 +133,7 @@
                             </div>
                         @endif
                     </td>
+                    <td class="px-4 py-2">{{ $event->client->full_name ?? 'Client Not Assigned' }}</td>
                     <td class="px-4 py-2">{{ $event->title }}</td>
                     <td class="px-4 py-2">{{ $event->venue }}</td>
                     <td class="px-4 py-2">{{ $event->start_date->format('M d, Y h:i A') }}</td>

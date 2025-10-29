@@ -4,7 +4,7 @@
 <div class="container mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between"></h1>
     <a href="{{ route('organizer.events') }}"
-        class="text-blue-400">Back to Events HUEHUEHUE</a>
+        class="text-blue-400">Back to Events</a>
 </div>
 
 <div class="container mt-5">
@@ -29,6 +29,20 @@
             @csrf
 
             <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Assign Client:</label>
+                    <select name="client_id" required>
+                        <option value="">-- Select Client --</option>
+
+                        @foreach ($clients as $client)
+                            <option value="{{ $client->id }}" 
+                                {{ $event->client_id == $client->id ? 'selected' : '' }}>
+                                {{ $client->full_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="col-md-6 mb-3">
                     <label>Title:</label>
                     <input type="text" name="title" value="{{ old('title', $event->title) }}" class="form-control" required>

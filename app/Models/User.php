@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -52,13 +53,25 @@ class User extends Authenticatable
         ];
     }
 
-    public function getNameAttribute()
+    protected function fullName(): Attribute
     {
-        return trim($this->first_name . ' ' . ($this->middle_name ?? '') . ' ' . $this->last_name);
+        return Attribute::make(
+            get: fn () => trim(
+                $this->first_name . ' ' . 
+                ($this->middle_name ? $this->middle_name . ' ' : '') . // Only add space if middle_name exists
+                $this->last_name
+            ),
+        );
     }
 
     public function events()
     {
         return $this->hasMany(Event::class);
     }
+
+    public function isClient()
+    {
+        return $this->role === 'client';
+    }
+    
 }

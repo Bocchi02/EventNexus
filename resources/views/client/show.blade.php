@@ -2,9 +2,12 @@
 
 @section('content')
 <div class="container mx-auto p-6">
-    <a href="{{ route('organizer.dashboard') }}" 
-       class="text-blue-400 hover:text-blue-300">&larr; Back to My Events</a>
+    <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between"></h1>
+    <a href="{{ route('client.dashboard') }}"
+        class="text-blue-400">Back to Dashboard</a>
+</div>
 
+<div class="container mx-auto p-6">
     <div class="bg-gray-800 rounded-lg p-6 mt-4">
         <div class="flex flex-col md:flex-row gap-6">
             @if($event->cover_image)

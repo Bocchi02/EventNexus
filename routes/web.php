@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\OrganizerController;
+use App\Http\Controllers\ClientController;
+use App\Http\Middleware\ClientMiddleware; //Meron middleware para mafortify yung access meaning client lang makakaaccess --call filbert for full details
 
 use Spatie\Permission\Middleware\RoleMiddleware;
 
@@ -45,6 +47,10 @@ Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function 
     Route::post('/organizer/events/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])->name('organizer.toggleStatus');
 });
 
-
+// Client Routes
+Route::middleware(['auth', RoleMiddleware::class . ':client']) ->prefix('client')->name('client.')->group(function () {
+        Route::get('/dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
+        Route::get('/events/{event}', [ClientController::class, 'showEvent'])->name('events.show');
+    });
 
 require __DIR__.'/auth.php';

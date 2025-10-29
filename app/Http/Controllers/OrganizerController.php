@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class OrganizerController extends Controller
@@ -32,10 +33,13 @@ class OrganizerController extends Controller
     public function events()
     {
         $events = Event::where('organizer_id', auth()->id())
-                       ->orderBy('created_at', 'desc')
-                       ->get();
+                        ->with('client')
+                        ->orderBy('created_at', 'desc')
+                        ->get();
 
-        return view('organizer.events', compact('events'));
+        $clients = User::where('role', 'client')->get();
+
+        return view('organizer.events', compact('events', 'clients'));
     }
 
     /**
@@ -44,6 +48,7 @@ class OrganizerController extends Controller
     public function storeEvent(Request $request)
     {
         $validated = $request->validate([
+            'client_id' => 'required|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'venue' => 'required|string|max:255',
@@ -55,6 +60,7 @@ class OrganizerController extends Controller
 
         $data = [
             'organizer_id' => auth()->id(),
+            'client_id' => $validated['client_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'venue' => $validated['venue'],
@@ -97,6 +103,7 @@ class OrganizerController extends Controller
                      ->firstOrFail();
 
         $validated = $request->validate([
+            'client_id' => 'required|exists:users,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'venue' => 'required|string|max:255',
@@ -108,6 +115,7 @@ class OrganizerController extends Controller
         ]);
 
         $data = [
+            'client_id' => $validated['client_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'venue' => $validated['venue'],
@@ -164,7 +172,9 @@ class OrganizerController extends Controller
     public function editEvent($id)
     {
         $event = Event::where('organizer_id', auth()->id())->findOrFail($id);
-        return view('organizer.edit', compact('event'));
+        $clients = User::where('role', 'client')->get();
+        
+        return view('organizer.edit', compact('event', 'clients'));
     }
 
     /**

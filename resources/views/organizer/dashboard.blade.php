@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="container py-4">
-    <div class="card shadow-sm">
+    <div class="card shadow-sm ">
         <div class="card-body">
             <h1 class="mb-3">Organizer Dashboard</h1>
-            <p>Welcome, {{ Auth::user()->name }}!</p>
-            <p>GOD PLEASE HELP THIS DAMNED CHILD</p>
+            <p>Welcome, {{ Auth::user()->full_name }}!</p><br>
+            <p>Event Summary</p>
         </div>
     </div>
 </div>
@@ -30,6 +30,6 @@
 
 <div class="container mx-auto p-6">
     <a href="{{ route('organizer.events') }}"
-        class="text-blue-400">Access the Events HUEHUEHUE</a>
+        class="text-blue-400">Access the Events</a>
 </div>
 @endsection

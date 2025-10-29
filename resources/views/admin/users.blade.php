@@ -86,7 +86,7 @@
         <tbody>
             @foreach($users as $user)
             <tr class="border-t border-gray-700">
-                <td class="px-4 py-2">{{ $user->name }}</td>
+                <td class="px-4 py-2">{{ $user->full_name }}</td>
                 <td class="px-4 py-2">{{ $user->email }}</td>
                 <td class="px-4 py-2">
                     <form method="POST" action="{{ route('admin.assignRole', $user->id) }}">
