@@ -24,9 +24,19 @@
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-gray-300">Name</label>
-                    <input type="text" name="name" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
+                    <label class="block text-gray-300">Firstname</label>
+                    <input type="text" name="firstname" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
                 </div>
+                <div>
+                    <label class="block text-gray-300">Middle Name</label>
+                    <input type="text" name="middlename" class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
+                </div>
+
+                <div>
+                    <label class="block text-gray-300">Last Name</label>
+                    <input type="text" name="lastname" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
+                </div>
+
 
                 <div>
                     <label class="block text-gray-300">Email</label>
@@ -76,7 +86,7 @@
         <tbody>
             @foreach($users as $user)
             <tr class="border-t border-gray-700">
-                <td class="px-4 py-2">{{ $user->name }}</td>
+                <td class="px-4 py-2">{{ $user->full_name }}</td>
                 <td class="px-4 py-2">{{ $user->email }}</td>
                 <td class="px-4 py-2">
                     <form method="POST" action="{{ route('admin.assignRole', $user->id) }}">

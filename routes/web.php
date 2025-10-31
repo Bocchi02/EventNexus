@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\OrganizerController;
+use App\Http\Controllers\ClientController;
+use App\Http\Middleware\ClientMiddleware; //Meron middleware para mafortify yung access meaning client lang makakaaccess --call filbert for full details
 
 use Spatie\Permission\Middleware\RoleMiddleware;
 
@@ -36,8 +38,19 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->group(function () {
 // Organizer Routes
 Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function () {
     Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard'])->name('organizer.dashboard');
+    Route::get('/organizer/events', [OrganizerController::class, 'events'])->name('organizer.events');
+    Route::post('/organizer/events/store', [OrganizerController::class, 'storeEvent'])->name('organizer.storeEvent');
+    Route::post('/organizer/events/{id}/update', [OrganizerController::class, 'updateEvent'])->name('organizer.updateEvent');
+    Route::get('/organizer/event/{id}', [OrganizerController::class, 'show'])->name('organizer.showEvent');
+    Route::get('/organizer/events/{id}/edit', [OrganizerController::class, 'editEvent'])->name('organizer.editEvent');
+    Route::delete('/organizer/events/{id}', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
+    Route::post('/organizer/events/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])->name('organizer.toggleStatus');
 });
 
-
+// Client Routes
+Route::middleware(['auth', RoleMiddleware::class . ':client']) ->prefix('client')->name('client.')->group(function () {
+        Route::get('/dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
+        Route::get('/events/{event}', [ClientController::class, 'showEvent'])->name('events.show');
+    });
 
 require __DIR__.'/auth.php';

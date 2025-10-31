@@ -40,14 +40,18 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'firstname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'lastname' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|string'
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
+            'first_name' => $validated['firstname'],      // Changed
+            'middle_name' => $validated['middlename'],    // Changed
+            'last_name' => $validated['lastname'],        // Changed
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'status' => 'active'
