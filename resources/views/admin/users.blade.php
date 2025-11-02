@@ -1,113 +1,225 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4 text-gray-100 flex justify-between">
-        Manage Users
-        <button onclick="document.getElementById('addUserForm').classList.toggle('hidden')"
-            class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded">
-            + Add User
-        </button>
-    </h1>
-
-    {{-- Flash messages --}}
-    @if(session('success'))
-        <div class="bg-green-700 text-white p-3 rounded mb-4">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-700 text-white p-3 rounded mb-4">{{ session('error') }}</div>
-    @endif
-
-    {{-- Add user form --}}
-    <div id="addUserForm" class="hidden bg-gray-800 p-4 rounded-lg mb-6">
-        <form method="POST" action="{{ route('admin.storeUser') }}">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-300">Name</label>
-                    <input type="text" name="name" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
+<div class="container-xxl flex-grow-1 container-p-y">
+    <!-- DataTable with Buttons -->
+              <div class="card">
+                <div class="card-datatable table-responsive">
+                  <table class="datatables-basic table border-top">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Date Added</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                  </table>
                 </div>
+              </div>
+              <!-- Modal to add new record -->
+              <div class="modal fade" id="addNewRecordModal" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="modalCenterTitle">Add New User</h5>
+                                <button
+                                  type="button"
+                                  class="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form id="addNewUserForm">
+                                  @csrf
+                                  <div class="row">
+                                  <div class="col mb-3">
+                                    <label for="firstname" class="form-label">First Name</label>
+                                    <input
+                                      type="text"
+                                      id="firstname"
+                                      name="firstname"
+                                      class="form-control"
+                                      placeholder="John" />
+                                  </div>
+                                  <div class="col mb-6">
+                                    <label for="middlename" class="form-label">Middle Name<small>(Optional)</small></label>
+                                    <input
+                                      type="text"
+                                      id="middlename"
+                                      name="middlename"
+                                      class="form-control"
+                                      placeholder="(Optional)" optional/>
+                                  </div>
+                                  <div class="col mb-6">
+                                    <label for="lastname" class="form-label">Last Name</label>
+                                    <input
+                                      type="text"
+                                      id="lastname"
+                                      name="lastname"
+                                      class="form-control"
+                                      placeholder="Doe" />
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-6">
+                                    <label for="roles" class="form-label">Roles</label>
+                                  <select name="role" class="form-select">
+                                    <option selected>-- Select Role --</option>
+                                    @foreach($roles as $role)
+                                      <option value="{{$role->name}}">{{ucfirst($role->name)}}</option>
+                                    @endforeach
+                                  </select>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input
+                                      type="email"
+                                      id="email"
+                                      class="form-control"
+                                      name="email"
+                                      placeholder="john.doe@example.com" />
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-0">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" name="password" id="dobWithTitle" class="form-control" />
+                                  </div>
+                                  <div class="col mb-0">
+                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" name="password_confirmation" id="dobWithTitle" class="form-control" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
+                                  Close
+                                </button>
+                                <button type="button" id="addUserBtn" class="btn btn-primary">Save changes</button>
+                              </div>
+                                </form> 
+                            </div>
+                          </div>
+                        </div>
 
-                <div>
-                    <label class="block text-gray-300">Email</label>
-                    <input type="email" name="email" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block text-gray-300">Password</label>
-                    <input type="password" name="password" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block text-gray-300">Confirm Password</label>
-                    <input type="password" name="password_confirmation" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
-                </div>
-
-                <div>
-                    <label class="block text-gray-300">Role</label>
-                    <select name="role" required class="w-full bg-gray-700 text-gray-100 rounded px-3 py-2">
-                        <option value="" disabled selected>-- Select Role --</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">
-                    Create User
-                </button>
-            </div>
-        </form>
-    </div>
-
-    {{-- Users table --}}
-    <table class="min-w-full bg-gray-800 text-gray-200 rounded-lg overflow-hidden">
-        <thead class="bg-gray-700">
-            <tr>
-                <th class="px-4 py-2 text-left">Name</th>
-                <th class="px-4 py-2 text-left">Email</th>
-                <th class="px-4 py-2 text-left">Role</th>
-                <th class="px-4 py-2 text-left">Status</th>
-                <th class="px-4 py-2 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($users as $user)
-            <tr class="border-t border-gray-700">
-                <td class="px-4 py-2">{{ $user->name }}</td>
-                <td class="px-4 py-2">{{ $user->email }}</td>
-                <td class="px-4 py-2">
-                    <form method="POST" action="{{ route('admin.assignRole', $user->id) }}">
-                        @csrf
-                        <select name="role" onchange="this.form.submit()" class="bg-gray-700 text-gray-100 rounded px-2 py-1">
-                            @foreach($roles as $role)
-                                <option value="{{ $role->name }}" {{ $user->roles->contains('name', $role->name) ? 'selected' : '' }}>
-                                    {{ ucfirst($role->name) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </form>
-                </td>
-                <td class="px-4 py-2">
-                    <form method="POST" action="{{ route('admin.toggleStatus', $user->id) }}">
-                        @csrf
-                        <button class="px-3 py-1 rounded {{ $user->status === 'active' ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-600 hover:bg-gray-500' }}">
-                            {{ ucfirst($user->status ?? 'inactive') }}
-                        </button>
-                    </form>
-                </td>
-                <td class="px-4 py-2 text-right">
-                    <form method="POST" action="{{ route('admin.deleteUser', $user->id) }}">
-                        @csrf
-                        @method('DELETE')
-                        <button class="text-red-400 hover:text-red-300">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+                        <!-- Modal to edit user -->
+              <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="modalCenterTitle">Edit User</h5>
+                                <button
+                                  type="button"
+                                  class="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                <form id="editUserForm">
+                                  @csrf
+                                  <div class="row">
+                                  <div class="col mb-3">
+                                    <label for="firstname" class="form-label">First Name</label>
+                                    <input
+                                      type="text"
+                                      id="firstname"
+                                      name="firstname"
+                                      class="form-control"/>
+                                  </div>
+                                  <div class="col mb-6">
+                                    <label for="middlename" class="form-label">Middle Name<small>(Optional)</small></label>
+                                    <input
+                                      type="text"
+                                      id="middlename"
+                                      name="middlename"
+                                      class="form-control"
+                                      placeholder="(Optional)" optional/>
+                                  </div>
+                                  <div class="col mb-6">
+                                    <label for="lastname" class="form-label">Last Name</label>
+                                    <input
+                                      type="text"
+                                      id="lastname"
+                                      name="lastname"
+                                      class="form-control"
+                                      placeholder="Doe" />
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-6">
+                                    <label for="roles" class="form-label">Roles</label>
+                                  <select name="role" class="form-select">
+                                    <option selected>-- Select Role --</option>
+                                    @foreach($roles as $role)
+                                      <option value="{{$role->name}}">{{ucfirst($role->name)}}</option>
+                                    @endforeach
+                                  </select>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-6">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input
+                                      type="email"
+                                      id="email"
+                                      class="form-control"
+                                      name="email"
+                                      placeholder="john.doe@example.com" />
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col mb-0">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" name="password" id="dobWithTitle" class="form-control" />
+                                  </div>
+                                  <div class="col mb-0">
+                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" name="password_confirmation" id="dobWithTitle" class="form-control" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
+                                  Close
+                                </button>
+                                <button type="button" id="addUserBtn" class="btn btn-primary">Save changes</button>
+                              </div>
+                                </form> 
+                            </div>
+                          </div>
+                        </div>
+                        
+              <!--/ DataTable with Buttons -->
 </div>
+@endsection
+
+@section('scripts')
+  <!-- Core JS -->
+      <!-- build:js assets/vendor/js/core.js -->
+
+      <script src="{{ asset('assets/vendor/libs/jquery/jquery.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/popper/popper.js')}}"></script>
+      <script src="{{ asset('assets/vendor/js/bootstrap.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/hammer/hammer.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/i18n/i18n.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/typeahead-js/typeahead.js')}}"></script>
+      <script src="{{ asset('assets/vendor/js/menu.js')}}"></script>
+      
+      <!-- Vendors JS -->
+      <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js')}}"></script>
+      <!-- Flat Picker -->
+      <script src="{{ asset('assets/vendor/libs/moment/moment.js')}}"></script>
+      <script src="{{ asset('assets/vendor/libs/flatpickr/flatpickr.js')}}"></script>
+
+      <!-- Main JS -->
+      <script src="{{ asset('assets/js/main.js')}}"></script>
+
+      <script src="{{ asset('assets/js/admin-userDataTable.js')}}"></script>
+
 @endsection

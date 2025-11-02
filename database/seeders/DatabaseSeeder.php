@@ -26,7 +26,9 @@ class DatabaseSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@eventnexus.com'], // unique identifier
             [
-                'name' => 'System Administrator',
+                'firstname' => 'System',
+                'middlename' => null,
+                'lastname' => 'Administrator',
                 'password' => Hash::make('password'), // default password
                 'phone_number' => null,
                 'profile_image' => null,
