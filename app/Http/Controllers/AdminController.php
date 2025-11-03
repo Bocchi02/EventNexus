@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 use Spatie\Permission\Models\Role;
 
@@ -132,8 +133,13 @@ class AdminController extends Controller
         $user->status = $user->status === 'active' ? 'inactive' : 'active';
         $user->save();
 
-        return redirect()->back()->with('success', 'User status updated.');
+        return response()->json([
+            'success' => true,
+            'message' => 'User status updated.',
+            'status' => $user->status,
+        ]);
     }
+
 
     public function editUser(Request $request, $id)
     {
@@ -182,7 +188,7 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         // Prevent deleting self (optional)
-        if (auth()->id() === $user->id) {
+        if (Auth::id() === $user->id) {
             return redirect()->back()->with('error', 'You cannot delete your own account.');
         }
 

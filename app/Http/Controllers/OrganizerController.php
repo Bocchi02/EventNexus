@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrganizerController extends Controller
 {
@@ -13,7 +14,7 @@ class OrganizerController extends Controller
      */
     public function dashboard()
     {
-        $organizerId = auth()->id();
+        $organizerId = Auth::id();
 
         $totalEvents = Event::where('organizer_id', $organizerId)->count();
         $upcomingEvents = Event::where('organizer_id', $organizerId)

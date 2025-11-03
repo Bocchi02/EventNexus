@@ -144,8 +144,7 @@ if (dt_basic_table.length) {
                 searchable: false,
                 responsivePriority: 1,
                 render: function (data, type, full, meta) {
-                    let deleteUrl =
-                        "{{ route('admin.deleteUser', ['id' => ':id']) }}";
+                    let deleteUrl = `{{ route('admin.deleteUser', ['id' => ':id']) }}`;
                     deleteUrl = deleteUrl.replace(":id", full.id);
                     return (
                         '<div class="d-inline-block">' +

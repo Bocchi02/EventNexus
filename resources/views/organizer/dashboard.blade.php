@@ -5,13 +5,8 @@
     <div class="card shadow-sm ">
         <div class="card-body">
             <h1 class="mb-3">Organizer Dashboard</h1>
-<<<<<<< HEAD
-            <p>Welcome, {{ Auth::user()->firstname }}!</p>
-            <p>This is your dashboard area for managing events.</p>
-=======
-            <p>Welcome, {{ Auth::user()->full_name }}!</p><br>
+            <p>Welcome, {{ Auth::user()->firstname }}!</p><br>
             <p>Event Summary</p>
->>>>>>> 92ede00f1cb45e514fd044295ceb8ae5ac417a15
         </div>
     </div>
 </div>
