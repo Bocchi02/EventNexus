@@ -1,21 +1,70 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-4 text-black-100">Admin Dashboard</h1>
-    <div class="grid md:grid-cols-3 gap-6">
-        <div class="bg-gray-800 p-4 rounded-lg shadow">
-            <h2 class="text-lg font-semibold text-gray-200">Total Users</h2>
-            <p class="text-3xl font-bold mt-2 text-blue-400">123</p>
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-xxl-10 mb-6  order-0">
+            <div class="card">
+                    <div class="d-flex row">
+                      <div class="col-sm-5 text-center text-sm-left">
+                        <div class="card-body pb-0 ps-10 text-sm-start text-center">
+                          <img src="../../assets/img/illustrations/man-with-laptop.png" height="181" alt="Target User">
+                        </div>
+                      </div>
+                      <div class="col-sm-7">
+                        <div class="card-body">
+                          <h5 class="card-title text-primary mb-3">Welcome back {{Auth::user()->firstname}}!</h5>
+                          <p class="mb-6">
+                            You have 12 task to finish today, Your already completed 189 task good job.
+                          </p>
+                          <span class="badge bg-label-primary">78% of TARGET</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="bg-gray-800 p-4 rounded-lg shadow">
-            <h2 class="text-lg font-semibold text-gray-200">Total Events</h2>
-            <p class="text-3xl font-bold mt-2 text-green-400">12</p>
+        <div class="col-xxl-2 mb-6 order-1">
+          <div class="card h-100">
+          <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+              <div class="avatar flex-shrink-0">
+                <span class="badge bg-label-success rounded p-2">
+                            <i class="bx bx-user bx-lg"></i>
+                          </span>
+              </div>
+              <div class="dropdown">
+                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
+                  <a class="dropdown-item" href="{{route('admin.users')}}">View More</a>
+                </div>
+              </div>
+            </div>
+            <p class="mb-1">Total Users</p>
+            <h4 class="card-title mb-3">{{ $totalUsers }}</h4>
+
+            @if($growth > 0)
+                <small class="text-success fw-medium">
+                    <i class="icon-base bx bx-up-arrow-alt"></i> +{{ number_format($growth, 2) }}%
+                </small>
+            @elseif($growth < 0)
+                <small class="text-danger fw-medium">
+                    <i class="icon-base bx bx-down-arrow-alt"></i> {{ number_format($growth, 2) }}%
+                </small>
+            @else
+                <small class="text-muted fw-medium">
+                    <i class="icon-base bx bx-minus"></i> 0%
+                </small>
+            @endif
+          </div>
         </div>
-        <div class="bg-gray-800 p-4 rounded-lg shadow">
-            <h2 class="text-lg font-semibold text-gray-200">Pending Approvals</h2>
-            <p class="text-3xl font-bold mt-2 text-yellow-400">5</p>
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+    <!-- Vendors JS -->
+    <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js')}}"></script>
 @endsection

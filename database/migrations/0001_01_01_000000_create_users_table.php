@@ -16,11 +16,9 @@ return new class extends Migration
             $table->id();
 
             // Basic info
-            $table->string('first_name'); 
-            $table->string('middle_name')->nullable();
-            $table->string('last_name');
-
-            //Account
+            $table->string('firstname');
+            $table->string('middlename')->nullable();
+            $table->string('lastname');
             $table->string('email')->unique();
             $table->string('password');
 

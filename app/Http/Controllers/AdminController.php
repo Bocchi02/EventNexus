@@ -6,6 +6,9 @@ use App\Models\User;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 use Spatie\Permission\Models\Role;
 
@@ -17,21 +20,53 @@ class AdminController extends Controller
     public function dashboard()
     {
         $totalUsers = User::count();
+
+         // Users created this week
+        $thisWeek = User::whereBetween('created_at', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek()
+        ])->count();
+
+        // Users created last week
+        $lastWeek = User::whereBetween('created_at', [
+            Carbon::now()->subWeek()->startOfWeek(),
+            Carbon::now()->subWeek()->endOfWeek()
+        ])->count();
+
+        // Compute growth rate (avoid division by zero)
+        $growth = $lastWeek > 0 ? (($thisWeek - $lastWeek) / $lastWeek) * 100 : ($thisWeek > 0 ? 100 : 0);
+
         $activeUsers = User::where('status', 'active')->count();
         $inactiveUsers = User::where('status', 'inactive')->count();
 
-        return view('admin.dashboard', compact('totalUsers', 'activeUsers', 'inactiveUsers'));
+        return view('admin.dashboard', compact('totalUsers', 'thisWeek', 'lastWeek', 'growth'));
     }
 
     /**
      * Show all users.
      */
     public function users()
-    {
-        $users = User::with('roles')->get();
+    {   
         $roles = Role::all();
+        return view('admin.users', compact('roles'));
+    }
 
-        return view('admin.users', compact('users', 'roles'));
+    public function getUsers()
+    {
+        $users = User::with('roles')->get()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'firstname' => $user->firstname,
+                'middlename' => $user->middlename,
+                'lastname' => $user->lastname,
+                'email' => $user->email,
+                'role' => $user->roles->pluck('name')->implode(', '), // combine role names
+                'status' => $user->status,
+                'created_at' => $user->created_at->toDateString(),
+            ];
+        });
+
+        return response()->json(['data' => $users]);
     }
 
     /**
@@ -39,29 +74,44 @@ class AdminController extends Controller
      */
     public function storeUser(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'firstname' => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255',
+            'middlename' => 'nullable|string|max:255', // You can add a 'middlename' field to your form if needed
             'lastname' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:6|confirmed', // 'confirmed' rule checks 'password_confirmation'
             'role' => 'required|string'
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $validated = $validator->validated();
+
         $user = User::create([
-            'first_name' => $validated['firstname'],      // Changed
-            'middle_name' => $validated['middlename'],    // Changed
-            'last_name' => $validated['lastname'],        // Changed
+            'firstname' => $validated['firstname'],
+            'middlename' => $validated['middlename'] ?? null, // Handle nullable middlename
+            'lastname' => $validated['lastname'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'status' => 'active'
         ]);
 
         $user->assignRole($validated['role']);
+        
+        // Eager load the role to send it back
+        $user->load('roles'); 
 
-        return redirect()->back()->with('success', 'User added successfully.');
+        // Return the new user as JSON
+        return response()->json([
+            'success' => 'User created successfully',
+            'title' => 'Saved Successfully!',
+        ]);
+        //return redirect()->route('admin.users')->with('success', 'User created successfully!');
     }
-
 
     /**
      * Assign a role to a user.
@@ -83,7 +133,51 @@ class AdminController extends Controller
         $user->status = $user->status === 'active' ? 'inactive' : 'active';
         $user->save();
 
-        return redirect()->back()->with('success', 'User status updated.');
+        return response()->json([
+            'success' => true,
+            'message' => 'User status updated.',
+            'status' => $user->status,
+        ]);
+    }
+
+
+    public function editUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'firstname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6|confirmed', // Password is optional on edit
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $validated = $validator->validated();
+
+        $user->firstname = $validated['firstname'];
+        $user->middlename = $validated['middlename'] ?? null;
+        $user->lastname = $validated['lastname'];
+        $user->email = $validated['email'];
+
+        if (!empty($validated['password'])) {
+            $user->password = bcrypt($validated['password']);
+        }
+
+        $user->save();
+
+         // Return the new user as JSON
+        return response()->json([
+            'success' => 'User updated successfully',
+            'title' => 'Saved Successfully!',
+        ]);
+        //return redirect()->back()->with('success', 'User updated successfully.');
     }
 
     /**
@@ -94,7 +188,7 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         // Prevent deleting self (optional)
-        if (auth()->id() === $user->id) {
+        if (Auth::id() === $user->id) {
             return redirect()->back()->with('error', 'You cannot delete your own account.');
         }
 
