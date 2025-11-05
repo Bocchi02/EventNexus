@@ -84,34 +84,12 @@
                 <div class="text-truncate" data-i18n="Dashboard">Dashboard</div>
               </a>
             </li>
-            <li class="menu-item {{ request()->routeIs() ? 'active open' : '' }}">
-              <a href="#" class="menu-link">
+            <li class="menu-item {{ request()->routeIs('organizer.events') ? 'active open' : '' }}">
+              <a href="{{route('organizer.events')}}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user"></i>
                 <div class="text-truncate" data-i18n="Events">Events</div>
               </a>
             </li>
             @endif
-
-                       
-
-            <!-- Misc -->
-            <li class="menu-header small text-uppercase">
-              <span class="menu-header-text" data-i18n="Misc">Misc</span>
-            </li>
-            <li class="menu-item">
-              <a href="https://themeselection.com/support/" target="_blank" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-support"></i>
-                <div class="text-truncate" data-i18n="Support">Support</div>
-              </a>
-            </li>
-            <li class="menu-item">
-              <a
-                href="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/documentation/"
-                target="_blank"
-                class="menu-link">
-                <i class="menu-icon tf-icons bx bx-file"></i>
-                <div class="text-truncate" data-i18n="Documentation">Documentation</div>
-              </a>
-            </li>
           </ul>
         </aside>

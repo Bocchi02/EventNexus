@@ -6,6 +6,8 @@ use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Spatie\Permission\Models\Role;
 
 class OrganizerController extends Controller
 {
@@ -16,6 +18,7 @@ class OrganizerController extends Controller
     {
         $organizerId = Auth::id();
 
+        // --- Original Counts ---
         $totalEvents = Event::where('organizer_id', $organizerId)->count();
         $upcomingEvents = Event::where('organizer_id', $organizerId)
                                 ->where('status', 'upcoming')
@@ -23,8 +26,35 @@ class OrganizerController extends Controller
         $completedEvents = Event::where('organizer_id', $organizerId)
                                 ->where('status', 'completed')
                                 ->count();
+        $cancelledEvents = Event::where('organizer_id', $organizerId)
+                                ->where('status', 'cancelled')
+                                ->count();
 
-        return view('organizer.dashboard', compact('totalEvents', 'upcomingEvents', 'completedEvents'));
+        // --- Growth Calculation ---
+
+        // Events created this week
+        $thisWeek = Event::where('organizer_id', $organizerId)->whereBetween('created_at', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek()
+        ])->count();
+
+        // Events created last week
+        $lastWeek = Event::where('organizer_id', $organizerId)->whereBetween('created_at', [
+            Carbon::now()->subWeek()->startOfWeek(),
+            Carbon::now()->subWeek()->endOfWeek()
+        ])->count();
+
+        // Compute growth rate
+        $growth = $lastWeek > 0 ? (($thisWeek - $lastWeek) / $lastWeek) * 100 : ($thisWeek > 0 ? 100 : 0);
+
+        // --- Return data to the view ---
+        return view('organizer.dashboard', compact(
+            'totalEvents', 
+            'upcomingEvents', 
+            'completedEvents', 
+            'cancelledEvents',
+            'growth'
+        ));
     }
 
 
@@ -38,8 +68,9 @@ class OrganizerController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-        $clients = User::where('role', 'client')->get();
-
+        $clientRole = Role::where('name', 'client')->firstOrFail();
+        $clients = $clientRole->users;
+                
         return view('organizer.events', compact('events', 'clients'));
     }
 
