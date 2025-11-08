@@ -76,24 +76,25 @@ class AdminController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'firstname' => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255', // You can add a 'middlename' field to your form if needed
+            'middlename' => 'nullable|string|max:255',
             'lastname' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed', // 'confirmed' rule checks 'password_confirmation'
+            'password' => 'required|string|min:6|confirmed',
             'role' => 'required|string'
         ]);
 
+        //  Return JSON validation errors for AJAX
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         $validated = $validator->validated();
 
         $user = User::create([
             'firstname' => $validated['firstname'],
-            'middlename' => $validated['middlename'] ?? null, // Handle nullable middlename
+            'middlename' => $validated['middlename'] ?? null,
             'lastname' => $validated['lastname'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
@@ -101,17 +102,14 @@ class AdminController extends Controller
         ]);
 
         $user->assignRole($validated['role']);
-        
-        // Eager load the role to send it back
-        $user->load('roles'); 
+        $user->load('roles');
 
-        // Return the new user as JSON
         return response()->json([
             'success' => 'User created successfully',
             'title' => 'Saved Successfully!',
-        ]);
-        //return redirect()->route('admin.users')->with('success', 'User created successfully!');
+        ], 200);
     }
+
 
     /**
      * Assign a role to a user.

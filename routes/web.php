@@ -41,12 +41,14 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->group(function () {
 Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function () {
     Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard'])->name('organizer.dashboard');
     Route::get('/organizer/events', [OrganizerController::class, 'events'])->name('organizer.events');
+    Route::get('/organizer/getEvents', [OrganizerController::class, 'getEvents'])->name('events.data');
     Route::post('/organizer/events/store', [OrganizerController::class, 'storeEvent'])->name('organizer.storeEvent');
     Route::post('/organizer/events/{id}/update', [OrganizerController::class, 'updateEvent'])->name('organizer.updateEvent');
     Route::get('/organizer/event/{id}', [OrganizerController::class, 'show'])->name('organizer.showEvent');
     Route::get('/organizer/events/{id}/edit', [OrganizerController::class, 'editEvent'])->name('organizer.editEvent');
     Route::delete('/organizer/events/{id}', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
     Route::post('/organizer/events/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])->name('organizer.toggleStatus');
+    Route::get('/organizer/searchClient', [OrganizerController::class, 'searchClient'])->name('organizer.searchClient');
 });
 
 // Client Routes

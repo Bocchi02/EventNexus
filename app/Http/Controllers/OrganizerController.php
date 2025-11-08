@@ -63,15 +63,59 @@ class OrganizerController extends Controller
      */
     public function events()
     {
-        $events = Event::where('organizer_id', auth()->id())
-                        ->with('client')
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-
-        $clientRole = Role::where('name', 'client')->firstOrFail();
-        $clients = $clientRole->users;
+        $clients = User::whereHas('roles', function($q) {
+            $q->where('name', 'client');
+        })->get();
                 
-        return view('organizer.events', compact('events', 'clients'));
+        return view('organizer.events', compact('clients'));
+    }
+
+    public function searchClient(Request $request)
+    {
+        $term = $request->input('q');
+
+        $clients = User::whereHas('roles', function ($query) {
+            $query->where('name', 'client');
+        })
+        ->where(function ($query) use ($term) {
+            $query->where('firstname', 'LIKE', '%'.$term.'%')
+                ->orWhere('lastname', 'LIKE', '%'.$term.'%')
+                ->orWhere('email', 'LIKE', '%'.$term.'%');
+        })
+        ->take(10)
+        ->get();
+
+        // Format for jQuery UI Autocomplete
+        // We need 'label' (what the user sees) and 'value' (the ID)
+        $results = $clients->map(function ($client) {
+            return [
+                'value' => $client->id, // <-- Changed from 'id'
+                'label' => $client->firstname . ' ' . $client->lastname . ' (' . $client->email . ')' // <-- Changed from 'text'
+            ];
+        });
+
+        return response()->json($results); // Return the array directly
+    }
+
+    public function getEvents()
+    {
+        $events = Event::where('organizer_id', Auth::id())
+                        ->with('client')
+                        ->get()
+                        ->map(function ($event) {
+                            return [
+                                'id' => $event->id,
+                                'title' => $event->title,
+                                'client' => $event->client ? $event->client->firstname . ' ' . $event->client->lastname : 'N/A',
+                                'venue' => $event->venue,
+                                'start_date' => $event->start_date->toDateString(),
+                                'end_date' => $event->end_date->toDateString(),
+                                'status' => $event->status,
+                                'created_at' => $event->created_at->toDateString(),
+                            ];
+                        });
+
+        return response()->json(['data' => $events]);
     }
 
     /**
@@ -86,12 +130,12 @@ class OrganizerController extends Controller
             'venue' => 'required|string|max:255',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'gallery_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'cover_image' => 'nullable|file|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:2048',
+            'gallery_images.*' => 'nullable|file|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:2048',
         ]);
 
         $data = [
-            'organizer_id' => auth()->id(),
+            'organizer_id' => Auth::id(),
             'client_id' => $validated['client_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
@@ -101,29 +145,36 @@ class OrganizerController extends Controller
             'status' => 'upcoming',
         ];
 
-        // Handle cover image upload
-        if ($request->hasFile('cover_image')) {
+        if ($request->hasFile('cover_image') && $request->file('cover_image')->isValid()) {
             $coverImage = $request->file('cover_image');
-            $coverImageName = time() . '_cover.' . $coverImage->getClientOriginalExtension();
-            $coverImage->move(public_path('uploads/events'), $coverImageName);
-            $data['cover_image'] = 'uploads/events/' . $coverImageName;
+            $name = time() . '_cover.' . $coverImage->getClientOriginalExtension();
+            $coverImage->move(public_path('uploads/events'), $name);
+            $data['cover_image'] = 'uploads/events/' . $name;
         }
 
-        // Handle gallery images upload
         if ($request->hasFile('gallery_images')) {
-            $galleryImages = [];
-            foreach ($request->file('gallery_images') as $index => $image) {
-                $imageName = time() . '_gallery_' . $index . '.' . $image->getClientOriginalExtension();
-                $image->move(public_path('uploads/events'), $imageName);
-                $galleryImages[] = 'uploads/events/' . $imageName;
+            $paths = [];
+            foreach ($request->file('gallery_images') as $i => $img) {
+                if ($img->isValid()) {
+                    $name = time() . '_gallery_' . $i . '.' . $img->getClientOriginalExtension();
+                    $img->move(public_path('uploads/events'), $name);
+                    $paths[] = 'uploads/events/' . $name;
+                }
             }
-            $data['gallery_images'] = $galleryImages;
+            $data['gallery_images'] = json_encode($paths);
         }
 
         Event::create($data);
 
+        if ($request->ajax()) {
+            return response()->json(['message' => 'Event created successfully.']);
+        }
+
         return redirect()->back()->with('success', 'Event created successfully.');
     }
+
+
+
 
     /**
      * Update an existing event
@@ -131,7 +182,7 @@ class OrganizerController extends Controller
     public function updateEvent(Request $request, $id)
     {
         $event = Event::where('id', $id)
-                     ->where('organizer_id', auth()->id())
+                     ->where('organizer_id', Auth::id())
                      ->firstOrFail();
 
         $validated = $request->validate([
@@ -194,7 +245,7 @@ class OrganizerController extends Controller
      */
     public function show($id)
     {
-        $event = Event::where('organizer_id', auth()->id())->findOrFail($id);
+        $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
         return view('organizer.show', compact('event'));
     }
 
@@ -203,7 +254,7 @@ class OrganizerController extends Controller
      */
     public function editEvent($id)
     {
-        $event = Event::where('organizer_id', auth()->id())->findOrFail($id);
+        $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
         $clients = User::where('role', 'client')->get();
         
         return view('organizer.edit', compact('event', 'clients'));
@@ -215,7 +266,7 @@ class OrganizerController extends Controller
     public function deleteEvent($id)
     {
         $event = Event::where('id', $id)
-                     ->where('organizer_id', auth()->id())
+                     ->where('organizer_id', Auth::id())
                      ->firstOrFail();
 
         // Delete cover image if exists
@@ -243,7 +294,7 @@ class OrganizerController extends Controller
     public function toggleStatus($id)
     {
         $event = Event::where('id', $id)
-                     ->where('organizer_id', auth()->id())
+                     ->where('organizer_id', Auth::id())
                      ->firstOrFail();
 
         // Cycle through statuses: upcoming -> ongoing -> completed
