@@ -4,19 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
     public function dashboard()
     {
-        $clientId = auth()->id();
+        $clientId = Auth::id();
 
-        $events = Event::where('client_id', $clientId)
-                       ->with('organizer') 
-                       ->orderBy('start_date', 'asc')
-                       ->get();
+        // --- Original Counts ---
+        $totalEvents = Event::where('client_id', $clientId)->count();
+        $upcomingEvents = Event::where('client_id', $clientId)
+                                ->where('status', 'upcoming')
+                                ->count();
+        $completedEvents = Event::where('client_id', $clientId)
+                                ->where('status', 'completed')
+                                ->count();
+        $cancelledEvents = Event::where('client_id', $clientId)
+                                ->where('status', 'cancelled')
+                                ->count();
 
-        return view('client.dashboard', compact('events'));
+        // --- Return data to the view ---
+        return view('client.dashboard', compact(
+            'totalEvents', 
+            'upcomingEvents', 
+            'completedEvents', 
+            'cancelledEvents'
+        ));
     }
 
     public function showEvent(Event $event)

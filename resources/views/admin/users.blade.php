@@ -20,7 +20,7 @@
                 </div>
               </div>
               <!-- Modal to add new record -->
-              <div class="modal fade" id="addNewRecordModal" tabindex="-1" aria-hidden="true">
+              <div class="modal fade" id="addNewUserModal" tabindex="-1" aria-hidden="true">
                           <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                               <div class="modal-header">
@@ -100,7 +100,7 @@
                                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
                                   Close
                                 </button>
-                                <button type="button" id="addUserBtn" class="btn btn-primary">Save changes</button>
+                                <button type="button" id="addUserBtn" class="btn btn-primary">Add User</button>
                               </div>
                                 </form> 
                             </div>
@@ -202,7 +202,7 @@
  
 
       <script>
-        var dt_basic_table = $(".datatables-basic");
+        var dt_basic_table = $(".datatables-basic"),dt_basic;
 
         // DataTable with buttons
         // --------------------------------------------------------------------
@@ -381,7 +381,7 @@
                         attr: {
                             type: "button",
                             "data-bs-toggle": "modal",
-                            "data-bs-target": "#addNewRecordModal",
+                            "data-bs-target": "#addNewUserModal",
                         },
                     },
                 ],
@@ -436,7 +436,7 @@
               processData: false,
               contentType: false,
               success: function (response) {
-                  $("#addNewRecordModal").modal("hide");
+                  $("#addNewUserModal").modal("hide");
                   Swal.fire({
                       title: response.title,
                       text: response.success,
@@ -453,6 +453,7 @@
                   $.each(errors, function (key, value) {
                       errorMessages += value[0] + "\n";
                   });
+                  $("#addNewUserModal").modal("hide");
                   Swal.fire({
                       title: "Error!",
                       text: errorMessages,
