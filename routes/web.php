@@ -47,14 +47,15 @@ Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function 
     Route::get('/organizer/event/{id}', [OrganizerController::class, 'show'])->name('organizer.showEvent');
     Route::get('/organizer/events/{id}/edit', [OrganizerController::class, 'editEvent'])->name('organizer.editEvent');
     Route::delete('/organizer/events/{id}', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
-    Route::post('/organizer/events/{id}/toggle-status', [OrganizerController::class, 'toggleStatus'])->name('organizer.toggleStatus');
     Route::get('/organizer/searchClient', [OrganizerController::class, 'searchClient'])->name('organizer.searchClient');
+    Route::get('/organizer/events/{id}', [OrganizerController::class, 'show']);
+    Route::post('/organizer/events/{id}/cancel', [OrganizerController::class, 'cancelEvent'])->name('organizer.cancelEvent');
 });
 
 // Client Routes
-Route::middleware(['auth', RoleMiddleware::class . ':client']) ->prefix('client')->name('client.')->group(function () {
-        Route::get('/dashboard', [ClientController::class, 'dashboard'])->name('dashboard');
-        Route::get('/events/{event}', [ClientController::class, 'showEvent'])->name('events.show');
+Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function () {
+        Route::get('/client/dashboard', [ClientController::class, 'dashboard'])->name('client.dashboard');
+        Route::get('/client/events', [ClientController::class, 'showEvent'])->name('client.events');
     });
 
 require __DIR__.'/auth.php';

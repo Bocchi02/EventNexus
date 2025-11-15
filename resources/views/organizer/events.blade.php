@@ -1,4 +1,43 @@
 @extends('layouts.app')
+@section('styles')
+<style>    /* Event Image Container */
+.event-image-container {
+  position: relative;
+  width: 100%;
+  max-width: 420px; /* approximate portrait letter size in modal-xl */
+  aspect-ratio: 3 / 4; /* maintains portrait look */
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  box-shadow: 0 0.5rem 1rem rgba(58, 53, 65, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.event-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-image-container:hover {
+  transform: scale(1.02);
+}
+
+/* Make it smaller on smaller modals or mobile screens */
+@media (max-width: 1199.98px) {
+  .event-image-container {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .event-image-container {
+    max-width: 100%;
+    aspect-ratio: 4 / 3; /* more landscape for small screens */
+  }
+}
+</style>
+@endsection
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <!-- DataTable with Buttons -->
@@ -87,6 +126,48 @@
                 </div>
             </div>
             </div>
+            <!-- Modal to view record -->
+              <!-- Modal -->
+            <!-- Modal -->
+            <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-xl">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Event Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="row align-items-start">
+                        <!-- Image Section -->
+                        <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 d-flex justify-content-center">
+                            <div class="event-image-container">
+                            <img id="event-image" src="/images/no-image.png" alt="Event Cover">
+                            </div>
+                        </div>
+
+                        <!-- Details Section -->
+                        <div class="col-md-7">
+                            <h5 id="event-title" class="fw-bold mb-3"></h5>
+                            <p><strong>Client:</strong> <span id="event-client"></span></p>
+                            <p><strong>Venue:</strong> <span id="event-venue"></span></p>
+                            <p><strong>Start:</strong> <span id="event-start"></span></p>
+                            <p><strong>End:</strong> <span id="event-end"></span></p>
+                            <p><strong>Status:</strong> <span id="event-status" class="badge bg-label-info"></span></p>
+                            <p class="mt-3"><strong>Description:</strong></p>
+                            <p id="event-description" class="text-muted"></p>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                    </div>
+                </div>
+                </div>
+
+            
 </div>
 @endsection
 
@@ -98,7 +179,6 @@
     dt_basic = dt_basic_table.DataTable({
         ajax: {
                 url: "/organizer/getEvents",
-                type: "GET",
                 dataSrc: "data"
             },
         columns: [
@@ -129,32 +209,38 @@
                         return `
                             <div class="d-flex flex-column">
                                 <span class="fw-semibold">${full.title}</span>
-                                <small class="text-muted">${full.client}</small>
+                                <small class="text-muted">Client: ${full.client}</small>
                             </div>`;
                     },
                 },
                 {
-                    targets: 3,
+                    targets: 3, // Start Date
                     render: function (data) {
                         if (!data) return "";
-                        const d = new Date(data);
-                        return d.toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
+                        const start = new Date(data).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
                         });
+                        return start;
                     },
                 },
                 {
-                    targets: 4,
+                    targets: 4, // End Date
                     render: function (data) {
                         if (!data) return "";
-                        const d = new Date(data);
-                        return d.toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
+                        const end = new Date(data).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
                         });
+                        return end;
                     },
                 },
                 {
@@ -175,24 +261,41 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full) {
-                        const viewUrl = `/organizer/events/${full.id}`;
                         const deleteUrl = `/organizer/events/${full.id}`;
+
+                        // 🧠 Check if event is already cancelled or completed
+                        const isCancelled = full.status === "cancelled" || full.status === "completed";
+                        const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-danger";
+                        const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
+
                         return `
-                            <div class="d-inline-block">
-                                <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
-                                    <i class="bx bx-dots-vertical-rounded bx-md"></i>
+                        <div class="d-inline-block">
+                            <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
+                            <i class="bx bx-dots-vertical-rounded bx-md"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end m-0">
+                            <li>
+                                <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
+                                View
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end m-0">
-                                    <li><a href="${viewUrl}" class="dropdown-item">View</a></li>
-                                    <div class="dropdown-divider"></div>
-                                    <li><a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a></li>
-                                </ul>
-                            </div>
-                            <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
-                                <i class="bx bx-edit bx-md"></i>
-                            </a>`;
+                            </li>
+                            <li>
+                                <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
+                                ${cancelText}
+                                </a>
+                            </li>
+                            <div class="dropdown-divider"></div>
+                            <li>
+                                <a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a>
+                            </li>
+                            </ul>
+                        </div>
+                        <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
+                            <i class="bx bx-edit bx-md"></i>
+                        </a>`;
                     },
-                },
+                }
+
             ],
             order: [[2, "desc"]],
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center"><"dt-action-buttons text-end pt-6 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
@@ -291,6 +394,8 @@
     });
 });
 
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const now = new Date();
     const formatted = now.toISOString().slice(0, 16); // format: "YYYY-MM-DDTHH:mm"
@@ -298,6 +403,137 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("start_date").value = formatted;
     document.getElementById("end_date").value = end.toISOString().slice(0, 16);
   });
+
+  
+  
+$(document).on("click", ".view-event-btn", function () {
+  const eventId = $(this).data("id");
+
+  // Show loading state
+  $("#viewEventModal .modal-title").text("Loading...");
+  $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
+  $("#event-description").text("Loading...");
+  $("#event-image").attr("src", "").attr("alt", "Loading...");
+  $("#viewEventModal").modal("show");
+
+  // Fetch details
+  $.ajax({
+    url: `/organizer/events/${eventId}`,
+    method: "GET",
+    success: function (event) {
+      const start = new Date(event.start_date).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const end = new Date(event.end_date).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      // Update modal
+      $("#viewEventModal .modal-title").text(event.title);
+      $("#event-title").text(event.title);
+      $("#event-client").text(event.client?.full_name || "Unknown Client");
+      $("#event-venue").text(event.venue);
+      $("#event-start").text(start);
+      $("#event-end").text(end);
+      $("#event-description").text(event.description ?? "No description provided.");
+
+      // Update badge color
+      const statusColors = {
+        upcoming: "bg-label-info",
+        ongoing: "bg-label-success",
+        completed: "bg-label-primary",
+        cancelled: "bg-label-danger",
+      };
+      const badgeClass = statusColors[event.status] || "bg-label-secondary";
+      $("#event-status")
+        .removeClass()
+        .addClass(`badge ${badgeClass}`)
+        .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
+
+      // Handle image
+      const imagePath = event.cover_image
+        ? `/${event.cover_image}`
+        : "/images/no-image.png";
+      $("#event-image").attr("src", imagePath).attr("alt", event.title);
+    },
+    error: function () {
+      $("#viewEventModal .modal-title").text("Error");
+      $("#event-description").text("Failed to load event details. Please try again.");
+    },
+  });
+});
+
+// ✅ Global CSRF setup
+$.ajaxSetup({
+  headers: {
+    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+  }
+});
+
+// ✅ Cancel Event Handler
+$(document).on("click", ".cancel-event-btn", function () {
+  const eventId = $(this).data("id");
+  const status = $(this).data("status");
+
+  // Prevent cancelling already cancelled or completed events
+  if (status === "cancelled" || status === "completed") {
+    Swal.fire({
+      title: "Not Allowed",
+      text: `This event is already ${status}.`,
+      icon: "info",
+      confirmButtonColor: "#3085d6",
+    });
+    return;
+  }
+
+  // Confirm cancellation
+  Swal.fire({
+    title: "Cancel this event?",
+    text: "This action will mark the event as 'Cancelled'.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Yes, cancel it",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: `/organizer/events/${eventId}/cancel`,
+        method: "POST",
+        success: function (response) {
+          Swal.fire({
+            title: "Event Cancelled",
+            text: response.message,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          }).then(() => {
+            // ✅ Correct way to refresh the DataTable
+            if (typeof dt_basic !== "undefined") {
+              dt_basic.ajax.reload(null, false);
+            }
+          });
+        },
+        error: function (xhr) {
+          console.error(xhr.responseText);
+          Swal.fire("Error!", "Failed to cancel the event. Please try again.", "error");
+        },
+      });
+    }
+  });
+});
+
+
 
 
 

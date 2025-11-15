@@ -1,56 +1,91 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-black-100">Client Dashboard</h1>
-    <p class="text-xl text-black-300 mb-6">Welcome, {{ Auth::user()->full_name }}! Here are the events assigned to you.</p>
-
-    <div class="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-        <table class="min-w-full text-gray-200">
-            <thead class="bg-gray-700">
-                <tr>
-                    <th class="px-4 py-2 text-left">Cover</th>
-                    <th class="px-4 py-2 text-left">Title</th>
-                    <th class="px-4 py-2 text-left">Venue</th>
-                    <th class="px-4 py-2 text-left">Start Date</th>
-                    <th class="px-4 py-2 text-left">Status</th>
-                    <th class="px-4 py-2 text-right">Details</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($events as $event)
-                <tr class="border-t border-gray-700 hover:bg-gray-700">
-                    <td class="px-4 py-2">
-                        @if($event->cover_image)
-                            <img src="{{ asset($event->cover_image) }}" alt="{{ $event->title }}" 
-                                class="w-16 h-16 object-cover rounded">
-                        @else
-                            <div class="w-16 h-16 bg-gray-600 rounded flex items-center justify-center text-gray-400">
-                                No Image
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-xxl-12 mb-6">
+            <div class="card">
+                <div class="d-flex row">
+                    <div class="col-sm-5 text-center text-sm-left">
+                        <div class="card-body pb-0 ps-10 text-sm-center text-center">
+                          <img src="../../assets/img/illustrations/boy-with-laptop-light.png" height="181" alt="Target User">
+                        </div>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="card-body">
+                          <h5 class="card-title text-primary mb-3">Welcome back {{Auth::user()->firstname}}!</h5>
+                          <p class="mb-6">
+                            You have {{$upcomingEvents}} upcoming events. Break a leg!
+                          </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-12 mb-6">
+            <div class="card">
+                    <div class="card-widget-separator-wrapper">
+                      <div class="card-body card-widget-separator">
+                        <div class="row gy-4 gy-sm-1">
+                          <div class="col-sm-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center card-widget-1 border-end pb-4 pb-sm-0">
+                              <div>
+                                <h4 class="mb-0">{{$totalEvents}}</h4>
+                                <p class="mb-0">Total Events</p>
+                              </div>
+                              <div class="avatar me-sm-6">
+                                <span class="avatar-initial rounded bg-label-secondary">
+                                  <i class="bx bx-calendar-event bx-26px"></i>
+                                </span>
+                              </div>
                             </div>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 font-semibold">{{ $event->title }}</td>
-                    <td class="px-4 py-3">{{ $event->venue }}</td>
-                    <td class="px-4 py-3">{{ $event->start_date->format('M d, Y h:i A') }}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-3 py-1 text-s font-semibold rounded-full bg-blue-600">
-                            {{ ucfirst($event->status) }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        <a href="{{ route('client.events.show', $event) }}" class="text-blue-400 hover:text-blue-300">View Details</a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-400">
-                        You currently have no assigned events.
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+                            <hr class="d-none d-sm-block d-lg-none me-6">
+                          </div>
+                          <div class="col-sm-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center card-widget-2 border-end pb-4 pb-sm-0">
+                              <div>
+                                <h4 class="mb-0 text-success">{{$completedEvents}}</h4>
+                                <p class="mb-0 text-success">Completed Events</p>
+                              </div>
+                              <div class="avatar me-lg-6">
+                                <span class="avatar-initial rounded bg-label-success">
+                                  <i class="bx bx-calendar-check bx-26px"></i>
+                                </span>
+                              </div>
+                            </div>
+                            <hr class="d-none d-sm-block d-lg-none">
+                          </div>
+                          <div class="col-sm-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center border-end pb-4 pb-sm-0 card-widget-3">
+                              <div>
+                                <h4 class="mb-0 text-primary">{{$upcomingEvents}}</h4>
+                                <p class="mb-0 text-primary">Upcomming Events</p>
+                              </div>
+                              <div class="avatar me-sm-6">
+                                <span class="avatar-initial rounded bg-label-primary text-heading">
+                                  <i class="bx bx-calendar-week bx-26px"></i>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-sm-6 col-lg-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                              <div>
+                                <h4 class="mb-0 text-danger">{{$cancelledEvents}}</h4>
+                                <p class="mb-0 text-danger">Cancelled Events</p>
+                              </div>
+                              <div class="avatar">
+                                <span class="avatar-initial rounded bg-label-danger">
+                                  <i class="bx bx-calendar-x bx-26px"></i>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+        </div>
     </div>
 </div>
 @endsection

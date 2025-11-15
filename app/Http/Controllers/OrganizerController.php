@@ -97,26 +97,30 @@ class OrganizerController extends Controller
         return response()->json($results); // Return the array directly
     }
 
-    public function getEvents()
+   public function getEvents()
     {
         $events = Event::where('organizer_id', Auth::id())
-                        ->with('client')
-                        ->get()
-                        ->map(function ($event) {
-                            return [
-                                'id' => $event->id,
-                                'title' => $event->title,
-                                'client' => $event->client ? $event->client->firstname . ' ' . $event->client->lastname : 'N/A',
-                                'venue' => $event->venue,
-                                'start_date' => $event->start_date->toDateString(),
-                                'end_date' => $event->end_date->toDateString(),
-                                'status' => $event->status,
-                                'created_at' => $event->created_at->toDateString(),
-                            ];
-                        });
+            ->with('client')
+            ->get()
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'client' => $event->client 
+                        ? $event->client->firstname . ' ' . $event->client->lastname 
+                        : 'N/A',
+                    'venue' => $event->venue,
+                    // ✅ Keep both date + time (Philippine standard)
+                    'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
+                    'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
+                    'status' => $event->status,
+                    'created_at' => $event->created_at ? $event->created_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
 
         return response()->json(['data' => $events]);
     }
+
 
     /**
      * Store a new event
@@ -245,8 +249,14 @@ class OrganizerController extends Controller
      */
     public function show($id)
     {
-        $event = Event::where('organizer_id', Auth::id())->findOrFail($id);
-        return view('organizer.show', compact('event'));
+        $event = Event::with('client:id,firstname,lastname,middlename')->findOrFail($id);
+
+        // Add a fallback if client doesn't exist
+        if (!$event->client) {
+            $event->client = (object)['full_name' => 'Unknown Client'];
+        }
+
+        return response()->json($event);
     }
 
     /** 
@@ -310,4 +320,16 @@ class OrganizerController extends Controller
 
         return redirect()->back()->with('success', 'Event status updated.');
     }
+
+    public function cancelEvent($id)
+    {
+        $event = Event::findOrFail($id);
+        $event->status = 'cancelled';
+        $event->save();
+
+        return response()->json(['message' => 'Event has been cancelled successfully.']);
+    }
+
+
+
 }
