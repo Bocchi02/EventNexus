@@ -37,7 +37,6 @@
   }
 }
 </style>
-@endsection
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <!-- DataTable with Buttons -->
@@ -58,77 +57,7 @@
                   </table>
                 </div>
               </div>
-              <!-- Modal to add new record -->
-              <!-- Modal -->
-            <div class="modal fade" id="createNewEventModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                <form id="addNewEventForm" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel1">Create New Event</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col mb-4">
-                                <label for="title" class="form-label">Event Title</label>
-                                <input type="text" name="title" class="form-control" placeholder="Enter Event Title">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col mb-6">
-                                <label for="client_id" class="form-label">Client</label>
-                                <select name="client_id" class="form-select" required>
-                                    <option value="" selected disabled>-- Select Client --</option>
-                                    @foreach($clients as $client)
-                                        <option value="{{ $client->id }}">
-                                            {{ ucfirst($client->full_name) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col mb-4">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" name="description" rows="3" placeholder="Enter event description"></textarea>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col mb-4">
-                                <label for="venue" class="form-label">Venue</label>
-                                <input type="text" name="venue" class="form-control" placeholder="Enter Venue">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col mb-4">
-                                <label for="start_date" class="form-label">Start Date</label>
-                                <input class="form-control" type="datetime-local" name="start_date" id="start_date"/>
-                            </div>
-                            <div class="col mb-4">
-                                <label for="end_date" class="form-label">End Date</label>
-                                <input class="form-control" type="datetime-local" name="end_date" id="end_date"/>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col mb-4">
-                                <label for="cover_image" class="form-label">Cover Image (Optional)</label>
-                                <input class="form-control" type="file" name="cover_image" accept="image/*">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" id="addEventBtn" class="btn btn-primary">Create Event</button>
-                    </div>
-                </form>
-                </div>
-            </div>
-            </div>
-            <!-- Modal to view record -->
-              <!-- Modal -->
-            <!-- Modal -->
+              <!-- View Event Modal -->
             <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModal" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-xl">
                     <div class="modal-content">
@@ -166,19 +95,69 @@
                     </div>
                 </div>
                 </div>
+                <!-- Invite Guest Modal -->
+                <div class="modal fade" id="inviteGuestModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-md">
+                    <div class="modal-content">
+                    <form id="inviteGuestForm">
+                        @csrf
+                        <div class="modal-header">
+                        <h5 class="modal-title">Invite Guest</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
 
-            
+                        <div class="modal-body">
+                        <input type="hidden" id="event_id" name="event_id">
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="firstname" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" class="form-control" name="middlename">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="lastname" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Guest Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+
+                        <div class="alert alert-secondary small">
+                            A guest account will automatically be created if no account exists for this email.
+                        </div>
+                        </div>
+
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="sendInviteBtn" class="btn btn-primary">Send Invitation</button>
+                        </div>
+
+                    </form>
+                    </div>
+                </div>
+                </div>
+
+
 </div>
 @endsection
 
 @section('scripts')
 <script>
-   $(document).ready(function(){
+    $(document).ready(function(){
     var dt_basic_table = $('.datatables-basic'), dt_basic;
     if (dt_basic_table.length) {
     dt_basic = dt_basic_table.DataTable({
         ajax: {
-                url: "/organizer/getEvents",
+                url: "/client/getEvents",
                 dataSrc: "data"
             },
         columns: [
@@ -280,6 +259,11 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
+                                Invite Guests
+                                </a>
+                            </li>
+                            <li>
                                 <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
                                 ${cancelText}
                                 </a>
@@ -308,15 +292,7 @@
                     },
                 },
                 buttons: [
-                    {
-                        text: '<i class="bx bx-plus bx-sm me-sm-2"></i> <span class="d-none d-sm-inline-block">Create New Event</span>',
-                        className: "create-new btn btn-primary",
-                        attr: {
-                            type: "button",
-                            "data-bs-toggle": "modal",
-                            "data-bs-target": "#createNewEventModal",
-                        },
-                    },
+                    
                 ],
                 responsive: {
                     details: {
@@ -353,185 +329,146 @@
                     },
                 },
             });
-            $("div.head-label").html('<h5 class="card-title mb-0">All Events</h5>');
+            $("div.head-label").html('<h5 class="card-title mb-0">My Events</h5>');
     }
    });
-    $(document).ready(function () {
-    $("#addEventBtn").on("click", function (e) {
+   
+   //view event details
+   $(document).on("click", ".view-event-btn", function () {
+    const eventId = $(this).data("id");
+
+    // Show loading state
+    $("#viewEventModal .modal-title").text("Loading...");
+    $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
+    $("#event-description").text("Loading...");
+    $("#event-image").attr("src", "").attr("alt", "Loading...");
+    $("#viewEventModal").modal("show");
+
+    // Fetch details
+    $.ajax({
+        url: `/client/events/${eventId}`,
+        method: "GET",
+        success: function (event) {
+        const start = new Date(event.start_date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+        const end = new Date(event.end_date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+
+        // Update modal
+        $("#viewEventModal .modal-title").text(event.title);
+        $("#event-title").text(event.title);
+        $("#event-client").text(event.client?.full_name || "Unknown Client");
+        $("#event-venue").text(event.venue);
+        $("#event-start").text(start);
+        $("#event-end").text(end);
+        $("#event-description").text(event.description ?? "No description provided.");
+
+        // Update badge color
+        const statusColors = {
+            upcoming: "bg-label-info",
+            ongoing: "bg-label-success",
+            completed: "bg-label-primary",
+            cancelled: "bg-label-danger",
+        };
+        const badgeClass = statusColors[event.status] || "bg-label-secondary";
+        $("#event-status")
+            .removeClass()
+            .addClass(`badge ${badgeClass}`)
+            .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
+
+        // Handle image
+        const imagePath = event.cover_image
+            ? `/${event.cover_image}`
+            : "/images/no-image.png";
+        $("#event-image").attr("src", imagePath).attr("alt", event.title);
+        },
+        error: function () {
+        $("#viewEventModal .modal-title").text("Error");
+        $("#event-description").text("Failed to load event details. Please try again.");
+        },
+    });
+    });
+
+    $(document).on("click", ".invite-guest-btn", function () {
+        currentEventId = $(this).data("event-id");
+
+        console.log("Invite clicked. Event ID =", currentEventId); // Debug
+
+        $("#inviteGuestModal").modal("show");
+    });
+
+
+    // Open invite modal
+    $(document).on("click", ".invite-guest-btn", function () {
+        const eventId = $(this).data("event-id");
+
+        // Set the hidden input value
+        $("#event_id").val(eventId);
+
+        console.log("Set event_id to:", eventId); // Debug
+
+        $("#inviteGuestModal").modal("show");
+    });
+
+
+    let currentEventId = null;
+
+    // Send invitation
+    $("#inviteGuestForm").on("submit", function (e) {
         e.preventDefault();
 
-        let formData = new FormData($("#addNewEventForm")[0]);
+        console.log("Submitting invite for event:", currentEventId); // Debug
+
+        if (!currentEventId) {
+            Swal.fire("Error!", "Event ID is missing!", "error");
+            return;
+        }
+
+        let formData = new FormData(this);
+
+        // 🔍 DEBUG HERE — show what values exist
+        console.log("email =", formData.get("email"));
+        console.log("firstname =", formData.get("firstname"));
+        console.log("lastname =", formData.get("lastname"));
+        console.log("event_id =", formData.get("event_id"));
+
 
         $.ajax({
-            url: "{{ route('organizer.storeEvent') }}",
+            url: `/client/events/${currentEventId}/invite`,
             type: "POST",
             data: formData,
             processData: false,
             contentType: false,
-            cache: false,
             success: function (response) {
-                $("#createNewEventModal").modal("hide");
+                $("#inviteGuestModal").modal("hide");
+
                 Swal.fire({
-                    title: "Success!",
-                    text: response.message || "Event created successfully.",
+                    title: "Invitation Sent",
+                    text: response.message,
                     icon: "success",
                     timer: 1500,
-                    showConfirmButton: false,
+                    showConfirmButton: false
                 });
-                if (typeof dt_basic !== "undefined") {
-                    dt_basic.ajax.reload();
-                }
             },
             error: function (xhr) {
-                let errors = xhr.responseJSON?.errors;
-                let msg = "";
-                $.each(errors, function (key, value) {
-                    msg += value[0] + "\n";
-                });
-                Swal.fire("Error!", msg, "error");
-            },
+                Swal.fire("Error!", xhr.responseJSON?.message || "Unable to send invitation.", "error");
+            }
         });
     });
-});
 
 
-
-document.addEventListener("DOMContentLoaded", function() {
-    const now = new Date();
-    const formatted = now.toISOString().slice(0, 16); // format: "YYYY-MM-DDTHH:mm"
-    const end = new Date(now.getTime() + 60 * 60 * 1000);
-    document.getElementById("start_date").value = formatted;
-    document.getElementById("end_date").value = end.toISOString().slice(0, 16);
-  });
-
-  
-  
-$(document).on("click", ".view-event-btn", function () {
-  const eventId = $(this).data("id");
-
-  // Show loading state
-  $("#viewEventModal .modal-title").text("Loading...");
-  $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
-  $("#event-description").text("Loading...");
-  $("#event-image").attr("src", "").attr("alt", "Loading...");
-  $("#viewEventModal").modal("show");
-
-  // Fetch details
-  $.ajax({
-    url: `/organizer/events/${eventId}`,
-    method: "GET",
-    success: function (event) {
-      const start = new Date(event.start_date).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-      const end = new Date(event.end_date).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-
-      // Update modal
-      $("#viewEventModal .modal-title").text(event.title);
-      $("#event-title").text(event.title);
-      $("#event-client").text(event.client?.full_name || "Unknown Client");
-      $("#event-venue").text(event.venue);
-      $("#event-start").text(start);
-      $("#event-end").text(end);
-      $("#event-description").text(event.description ?? "No description provided.");
-
-      // Update badge color
-      const statusColors = {
-        upcoming: "bg-label-info",
-        ongoing: "bg-label-success",
-        completed: "bg-label-primary",
-        cancelled: "bg-label-danger",
-      };
-      const badgeClass = statusColors[event.status] || "bg-label-secondary";
-      $("#event-status")
-        .removeClass()
-        .addClass(`badge ${badgeClass}`)
-        .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
-
-      // Handle image
-      const imagePath = event.cover_image
-        ? `/${event.cover_image}`
-        : "/images/no-image.png";
-      $("#event-image").attr("src", imagePath).attr("alt", event.title);
-    },
-    error: function () {
-      $("#viewEventModal .modal-title").text("Error");
-      $("#event-description").text("Failed to load event details. Please try again.");
-    },
-  });
-});
-
-// ✅ Global CSRF setup
-$.ajaxSetup({
-  headers: {
-    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-  }
-});
-
-// ✅ Cancel Event Handler
-$(document).on("click", ".cancel-event-btn", function () {
-  const eventId = $(this).data("id");
-  const status = $(this).data("status");
-
-  // Prevent cancelling already cancelled or completed events
-  if (status === "cancelled" || status === "completed") {
-    Swal.fire({
-      title: "Not Allowed",
-      text: `This event is already ${status}.`,
-      icon: "info",
-      confirmButtonColor: "#3085d6",
-    });
-    return;
-  }
-
-  // Confirm cancellation
-  Swal.fire({
-    title: "Cancel this event?",
-    text: "This action will mark the event as 'Cancelled'.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, cancel it",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: `/organizer/events/${eventId}/cancel`,
-        method: "POST",
-        success: function (response) {
-          Swal.fire({
-            title: "Event Cancelled",
-            text: response.message,
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false,
-          }).then(() => {
-            // ✅ Correct way to refresh the DataTable
-            if (typeof dt_basic !== "undefined") {
-              dt_basic.ajax.reload(null, false);
-            }
-          });
-        },
-        error: function (xhr) {
-          console.error(xhr.responseText);
-          Swal.fire("Error!", "Failed to cancel the event. Please try again.", "error");
-        },
-      });
-    }
-  });
-});
 
 
 
