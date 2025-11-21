@@ -40,4 +40,29 @@ class Event extends Model
     {
         return $this->belongsTo(user::class, 'client_id');
     }
+
+    public function invitedGuests()
+    {
+        return $this->belongsToMany(User::class, 'event_guest')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    public function registeredGuests()
+    {
+        return $this->belongsToMany(User::class, 'event_guest')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    public function pendingGuests()
+    {
+        return $this->hasMany(PendingGuest::class);
+    }
+
+    public function guests()
+    {
+        return $this->belongsToMany(User::class, 'event_guests');
+    }
+
 }

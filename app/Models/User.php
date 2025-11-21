@@ -53,4 +53,18 @@ class User extends Authenticatable
     {
         return trim("{$this->lastname}, {$this->firstname} {$this->middlename}");
     }
+
+    public function invitedEvents()
+    {
+        return $this->belongsToMany(Event::class, 'event_guest')
+                    ->withPivot('status', 'role')
+                    ->withTimestamps();
+    }
+
+    public function pendingInvitations()
+    {
+        return $this->hasMany(PendingGuest::class, 'client_id');
+    }
+
+
 }
