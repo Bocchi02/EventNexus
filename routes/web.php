@@ -9,6 +9,7 @@ use App\Http\Controllers\OrganizerController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientInvitationController;
 use App\Http\Controllers\InviteGuestController;
+use App\Http\Controllers\GuestController;
 use App\Http\Middleware\ClientMiddleware; //Meron middleware para mafortify yung access meaning client lang makakaaccess --call filbert for full details
 
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -82,4 +83,12 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
 
     // Public — guest accepts invitation
 Route::get('/invitation/accept/{token}', [InviteGuestController::class, 'acceptInvite'])->name('invitation.accept');
+
+//Guest Routes
+Route::middleware(['auth'])->name('guest.')->group(function () {
+    Route::get('/guest/dashboard', [GuestController::class, 'dashboard'])->name('dashboard');
+    Route::get('/guest/events', [GuestController::class, 'events'])->name('events');
+    Route::get('/getEvents', [GuestController::class, 'getEventsAjax'])->name('getEvents');
+});
+
 require __DIR__.'/auth.php';

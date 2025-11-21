@@ -105,6 +105,21 @@
                 <div class="text-truncate" data-i18n="Events">Events</div>
               </a>
             </li>
+
+            @elseif(Auth::user()->hasRole('guest'))
+            <!-- Dashboards -->
+            <li class="menu-item  {{ request()->routeIs('guest.dashboard') ? 'active open' : '' }}">
+              <a href="{{route('guest.dashboard')}}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-home-smile"></i>
+                <div class="text-truncate" data-i18n="Dashboard">Dashboard</div>
+              </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('guest.events') ? 'active open' : '' }}">
+              <a href="{{route('guest.events')}}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user"></i>
+                <div class="text-truncate" data-i18n="Events">Events</div>
+              </a>
+            </li>
             @endif
           </ul>
         </aside>
