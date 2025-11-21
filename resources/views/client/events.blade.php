@@ -167,7 +167,7 @@
                 { data: "start_date" },
                 { data: "end_date" },
                 { data: "status" },
-                { data: null } // actions column
+                { data: null } // actions column    
             ],  
       columnDefs: [
                 {
@@ -264,19 +264,11 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
-                                ${cancelText}
+                                <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
+                                View Guests
                                 </a>
                             </li>
-                            <div class="dropdown-divider"></div>
-                            <li>
-                                <a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a>
-                            </li>
-                            </ul>
-                        </div>
-                        <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
-                            <i class="bx bx-edit bx-md"></i>
-                        </a>`;
+                        </div>`;
                     },
                 }
 
@@ -404,21 +396,6 @@
     $(document).on("click", ".invite-guest-btn", function () {
         currentEventId = $(this).data("event-id");
 
-        console.log("Invite clicked. Event ID =", currentEventId); // Debug
-
-        $("#inviteGuestModal").modal("show");
-    });
-
-
-    // Open invite modal
-    $(document).on("click", ".invite-guest-btn", function () {
-        const eventId = $(this).data("event-id");
-
-        // Set the hidden input value
-        $("#event_id").val(eventId);
-
-        console.log("Set event_id to:", eventId); // Debug
-
         $("#inviteGuestModal").modal("show");
     });
 
@@ -429,21 +406,12 @@
     $("#inviteGuestForm").on("submit", function (e) {
         e.preventDefault();
 
-        console.log("Submitting invite for event:", currentEventId); // Debug
-
         if (!currentEventId) {
             Swal.fire("Error!", "Event ID is missing!", "error");
             return;
         }
 
         let formData = new FormData(this);
-
-        // 🔍 DEBUG HERE — show what values exist
-        console.log("email =", formData.get("email"));
-        console.log("firstname =", formData.get("firstname"));
-        console.log("lastname =", formData.get("lastname"));
-        console.log("event_id =", formData.get("event_id"));
-
 
         $.ajax({
             url: `/client/events/${currentEventId}/invite`,
