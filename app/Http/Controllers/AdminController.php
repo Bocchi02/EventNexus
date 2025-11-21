@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Event;   
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -39,7 +40,18 @@ class AdminController extends Controller
         $activeUsers = User::where('status', 'active')->count();
         $inactiveUsers = User::where('status', 'inactive')->count();
 
-        return view('admin.dashboard', compact('totalUsers', 'thisWeek', 'lastWeek', 'growth'));
+        $upcomingEvents = Event::where('status', 'upcoming')
+            ->orderBy('start_date', 'asc')
+            ->take(5)
+            ->get();
+
+        $cancelledEvents = Event::where('status', 'cancelled')
+            ->orderBy('start_date', 'asc')
+            ->take(5)
+            ->get();
+
+
+        return view('admin.dashboard', compact('totalUsers', 'thisWeek', 'lastWeek', 'growth', 'upcomingEvents', 'cancelledEvents'));
     }
 
     /**
@@ -194,4 +206,7 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'User deleted successfully.');
     }
+
+
+
 }
