@@ -110,7 +110,7 @@ class OrganizerController extends Controller
                         ? $event->client->firstname . ' ' . $event->client->lastname 
                         : 'N/A',
                     'venue' => $event->venue,
-                    // ✅ Keep both date + time (Philippine standard)
+                    //  Keep both date + time (Philippine standard)
                     'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
                     'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
                     'status' => $event->status,
