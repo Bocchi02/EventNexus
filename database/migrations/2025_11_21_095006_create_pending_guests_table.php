@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
             $table->string('email');
-            $table->string('name')->nullable();
             $table->string('invite_token')->unique();
             $table->enum('status', ['pending', 'accepted', 'expired'])->default('pending');
             $table->timestamps();
