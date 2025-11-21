@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardRedirectController;
 use App\Http\Controllers\OrganizerController;
@@ -14,6 +15,9 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/guest/dashboard', [GuestController::class, 'dashboard'])
+    ->name('guest.dashboard');
 
 Route::get('/dashboard', [DashboardRedirectController::class, 'redirect'])
     ->middleware(['auth', 'verified'])
