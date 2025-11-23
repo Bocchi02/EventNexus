@@ -53,28 +53,26 @@ class InviteGuestController extends Controller
         ]);
     }
 
-    public function inviteGuest(Request $request)
-{
-    // ... validation and data gathering ...
-    
-    $email = $request->input('email');
-    $eventId = $request->input('event_id');
-
-    // 🚀 STEP 1: Check if the user already exists in the main users table
-    $existingUser = User::where('email', $email)->first();
-
-    if ($existingUser) {
-        // --- User is registered (e.g., Bocchi) ---
+    public function inviteGuest(Request $request, $eventId) 
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
         
-        // 1a. Find the Event model (assuming you passed $event, or fetch it)
-        $event = Event::findOrFail($eventId); 
+        $email = $request->input('email');
         
-        // 1b. Link the existing user to the event in the event_guests table (many-to-many)
-        // This implicitly prevents the 'Duplicate Entry' error by skipping 'pending_guests'
-        $event->guests()->syncWithoutDetaching([$existingUser->id]);
+        $existingUser = User::where('email', $email)->first();
 
-        // Return a success message that the registered user was added
-        return response()->json(['message' => 'Registered user added to event.'], 200);
+        if ($existingUser) {
+            // 1a. Find the Event using the ID passed from the URL
+            $event = Event::findOrFail($eventId); 
+            
+            // 1b. Prevent duplicates
+            if (!$event->guests->contains($existingUser->id)) {
+                $event->guests()->syncWithoutDetaching([$existingUser->id]);
+            }
+
+            return response()->json(['message' => 'Registered user added to event.'], 200);
 
     } else {
         // --- User is not registered (Proceed with PENDING invite) ---
@@ -83,10 +81,9 @@ class InviteGuestController extends Controller
         $pendingInvite = PendingGuest::where('email', $email)
                                      ->where('event_id', $eventId)
                                      ->first();
-                                     
+        
         if ($pendingInvite) {
-            // User already has a pending invite for this specific event
-             return response()->json(['message' => 'User already has a pending invitation for this event.'], 409);
+             return response()->json(['message' => 'Invitation already pending.'], 409);
         }
 
         // 2b. If no user and no pending invite, proceed with the INSERT into pending_guests
