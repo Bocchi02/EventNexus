@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'My Events | EventNexus')
 @section('styles')
 <style>    /* Event Image Container */
 .event-image-container {

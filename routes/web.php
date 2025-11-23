@@ -15,7 +15,7 @@ use App\Http\Middleware\ClientMiddleware; //Meron middleware para mafortify yung
 use Spatie\Permission\Middleware\RoleMiddleware;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', [DashboardRedirectController::class, 'redirect'])
@@ -49,7 +49,7 @@ Route::middleware(['auth', RoleMiddleware::class.':organizer'])->group(function 
     Route::post('/organizer/events/{id}/update', [OrganizerController::class, 'updateEvent'])->name('organizer.updateEvent');
     Route::get('/organizer/event/{id}', [OrganizerController::class, 'show'])->name('organizer.showEvent');
     Route::get('/organizer/events/{id}/edit', [OrganizerController::class, 'editEvent'])->name('organizer.editEvent');
-    Route::delete('/organizer/events/{id}', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
+    Route::delete('/organizer/events/{id}/delete', [OrganizerController::class, 'deleteEvent'])->name('organizer.deleteEvent');
     Route::get('/organizer/searchClient', [OrganizerController::class, 'searchClient'])->name('organizer.searchClient');
     Route::get('/organizer/events/{id}', [OrganizerController::class, 'show']);
     Route::post('/organizer/events/{id}/cancel', [OrganizerController::class, 'cancelEvent'])->name('organizer.cancelEvent');

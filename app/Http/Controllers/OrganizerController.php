@@ -177,9 +177,6 @@ class OrganizerController extends Controller
         return redirect()->back()->with('success', 'Event created successfully.');
     }
 
-
-
-
     /**
      * Update an existing event
      */
@@ -295,7 +292,10 @@ class OrganizerController extends Controller
 
         $event->delete();
 
-        return redirect()->back()->with('success', 'Event deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Event deleted successfully.'
+        ]);
     }
 
     /**
