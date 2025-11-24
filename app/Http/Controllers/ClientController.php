@@ -28,13 +28,21 @@ class ClientController extends Controller
         $cancelledEvents = Event::where('client_id', $clientId)
                                 ->where('status', 'cancelled')
                                 ->count();
+        $nextEvent = Event::where('client_id', $clientId)
+                                ->where('start_date', '>=', now()) 
+                                ->orderBy('start_date', 'asc')     
+                                ->withCount(['guests as accepted_count' => function ($query) {
+                                    $query->where('event_guest.status', 'accepted');
+                                }])
+                                ->first();
 
         // --- Return data to the view ---
         return view('client.dashboard', compact(
             'totalEvents', 
             'upcomingEvents', 
             'completedEvents', 
-            'cancelledEvents'
+            'cancelledEvents',
+            'nextEvent'
         ));
     }
 
