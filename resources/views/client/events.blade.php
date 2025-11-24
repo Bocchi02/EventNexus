@@ -148,71 +148,98 @@
 
                 <!-- View Guests List Modal -->
                 <div class="modal fade" id="viewGuestsModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="viewGuestsTitle">Guests for Event: </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                {{-- Table to display accepted guests --}}
-                                <h6 class="text-success">✓ Accepted Guests</h6>
-                                <div class="table-responsive mb-4">
-                                    <table class="table table-sm table-hover" id="acceptedGuestsTable">
-                                        <thead>
-                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Accepted guests will be inserted here by AJAX -->
-                                        </tbody>
-                                    </table>
+                <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="viewGuestsTitle">Guests for Event: </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <ul class="nav nav-tabs mb-3" id="guestTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active text-success" id="accepted-tab" data-bs-toggle="tab" data-bs-target="#accepted-pane" type="button" role="tab">
+                                        ✓ Accepted 
+                                        <span class="badge bg-success-subtle text-success ms-1" id="count-accepted">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-warning" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-pane" type="button" role="tab">
+                                        ⏳ Pending 
+                                        <span class="badge bg-warning-subtle text-warning ms-1" id="count-pending">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-danger" id="declined-tab" data-bs-toggle="tab" data-bs-target="#declined-pane" type="button" role="tab">
+                                        ✗ Declined 
+                                        <span class="badge bg-danger-subtle text-danger ms-1" id="count-declined">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-secondary" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled-pane" type="button" role="tab">
+                                        ⊗ Cancelled 
+                                        <span class="badge bg-secondary-subtle text-secondary ms-1" id="count-cancelled">0</span>
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="guestTabsContent">
+                                
+                                <div class="tab-pane fade show active" id="accepted-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="acceptedGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
-                                {{-- Table to display pending invitations --}}
-                                <h6 class="text-warning">⏳ Pending Invitations</h6>
-                                <div class="table-responsive mb-4">
-                                    <table class="table table-sm table-hover" id="pendingGuestsTable">
-                                        <thead>
-                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Pending guests will be inserted here by AJAX -->
-                                        </tbody>
-                                    </table>
+                                <div class="tab-pane fade" id="pending-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="pendingGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
-                                {{-- Table to display declined guests --}}
-                                <h6 class="text-danger">✗ Declined Invitations</h6>
-                                <div class="table-responsive mb-4">
-                                    <table class="table table-sm table-hover" id="declinedGuestsTable">
-                                        <thead>
-                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Declined guests will be inserted here by AJAX -->
-                                        </tbody>
-                                    </table>
+                                <div class="tab-pane fade" id="declined-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="declinedGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
-                                {{-- Table to display cancelled guests --}}
-                                <h6 class="text-secondary">⊗ Cancelled Attendance</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-hover" id="cancelledGuestsTable">
-                                        <thead>
-                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Cancelled guests will be inserted here by AJAX -->
-                                        </tbody>
-                                    </table>
+                                <div class="tab-pane fade" id="cancelled-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="cancelledGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
                                 </div>
+
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
+            </div>
 
 </div>
 @endsection
@@ -513,6 +540,15 @@
         $("#pendingGuestsTable tbody").empty();
         $("#declinedGuestsTable tbody").empty();
         $("#cancelledGuestsTable tbody").empty();
+
+        // ---------------------------------------------------------
+        // NEW: Reset the tab to the first one (Accepted) automatically
+        // ---------------------------------------------------------
+        var firstTabEl = document.querySelector('#guestTabs button[data-bs-target="#accepted-pane"]');
+        var firstTab = new bootstrap.Tab(firstTabEl);
+        firstTab.show();
+        // ---------------------------------------------------------
+
         $("#viewGuestsModal").modal("show");
 
         $.ajax({
@@ -521,7 +557,12 @@
             success: function (response) {
                 $("#viewGuestsTitle").text(`Guests for Event: ${response.eventTitle}`);
                 
-                // Render Accepted Guests
+                $("#count-accepted").text(response.accepted ? response.accepted.length : 0);
+                $("#count-pending").text(response.pending ? response.pending.length : 0);
+                $("#count-declined").text(response.declined ? response.declined.length : 0);
+                $("#count-cancelled").text(response.cancelled ? response.cancelled.length : 0);
+                
+                // --- Accepted Guests ---
                 if (response.accepted && response.accepted.length > 0) {
                     response.accepted.forEach(guest => {
                         const row = `
@@ -536,7 +577,7 @@
                     $("#acceptedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No accepted guests yet.</td></tr>');
                 }
 
-                // Render Pending Invitations
+                // --- Pending Invitations ---
                 if (response.pending && response.pending.length > 0) {
                     response.pending.forEach(invite => {
                         const row = `
@@ -551,7 +592,7 @@
                     $("#pendingGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No pending invitations.</td></tr>');
                 }
 
-                // Render Declined Guests
+                // --- Declined Guests ---
                 if (response.declined && response.declined.length > 0) {
                     response.declined.forEach(guest => {
                         const row = `
@@ -566,7 +607,7 @@
                     $("#declinedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No declined invitations.</td></tr>');
                 }
 
-                // Render Cancelled Guests
+                // --- Cancelled Guests ---
                 if (response.cancelled && response.cancelled.length > 0) {
                     response.cancelled.forEach(guest => {
                         const row = `
@@ -586,7 +627,6 @@
             }
         });
     });
-
 
 
 </script>
