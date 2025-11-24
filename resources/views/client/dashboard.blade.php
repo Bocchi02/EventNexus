@@ -90,73 +90,152 @@
         </div>
     </div> @if(isset($nextEvent) && $nextEvent)
     <div class="row">
-        <div class="col-12">
-            <h5 class="text-muted fw-light mb-3">Next on Schedule</h5>
-            <div class="card mb-6 overflow-hidden">
-                <div class="row g-0">
-                    <div class="col-md-4 bg-label-primary d-flex align-items-center justify-content-center" 
-                        style="min-height: 250px; background-image: url('{{ $nextEvent->cover_image ? asset($nextEvent->cover_image) : 'https://placehold.co/600x400/696cff/ffffff?text=No+Image' }}'); background-size: cover; background-position: center;">
-                    </div>
+    
+        <div class="col-lg-4 mb-6">
+            <div class="card h-100"> <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 card-title">Recent Activity</h5>
+                    <small class="text-muted">Latest Acceptations</small>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        @forelse($recentActivities as $activity)
+                            @php
+                                $statusStyles = [
+                                    'accepted' => [
+                                        'icon' => 'bx-check', 
+                                        'color' => 'success', 
+                                        'text' => 'accepted invitation for'
+                                    ],
+                                    'declined' => [
+                                        'icon' => 'bx-x', 
+                                        'color' => 'danger', 
+                                        'text' => 'declined invitation for'
+                                    ],
+                                    'cancelled' => [
+                                        'icon' => 'bx-block', 
+                                        'color' => 'secondary', 
+                                        'text' => 'cancelled attendance for'
+                                    ],
+                                ];
+                                
+                                $style = $statusStyles[$activity->status] ?? $statusStyles['accepted'];
+                            @endphp
 
-                    <div class="col-md-8">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-label-primary rounded-pill">
-                                    {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('M d, Y') }}
-                                </span>
-                                <small class="text-muted fw-bold">
-                                    <i class="bx bx-time-five me-1"></i>
-                                    {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('h:i A') }}
+                            <li class="list-group-item d-flex justify-content-between align-items-start px-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-3">
+                                        <span class="avatar-initial rounded-circle bg-label-{{ $style['color'] }}">
+                                            <i class='bx {{ $style['icon'] }}'></i>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-medium text-heading">
+                                            {{ $activity->firstname }} {{ $activity->lastname }}
+                                        </span>
+                                        <small class="text-muted">
+                                            {{ $style['text'] }} 
+                                            <strong>{{ Str::limit($activity->event_title, 20) }}</strong>
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    {{ \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() }}
                                 </small>
-                            </div>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted py-4">
+                                No recent activities.
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+                @if(count($recentActivities) > 0)
+                <div class="card-footer text-center border-top">
+                    <a href="{{ url('/client/events') }}" class="small fw-semibold">View All Events</a>
+                </div>
+                @endif
+            </div>
+        </div>
 
-                            <h3 class="card-title fw-bold text-dark mb-3">{{ $nextEvent->title }}</h3>
-                            
-                            <p class="card-text text-muted mb-4">
-                                {{ Str::limit($nextEvent->description ?? 'No description provided.', 120) }}
-                            </p>
+        <div class="col-lg-8 mb-6">
+            @if(isset($nextEvent) && $nextEvent)
+                <div class="card h-100 overflow-hidden">
+                    <div class="row g-0 h-100">
+                        <div class="col-md-5 bg-label-primary d-flex align-items-center justify-content-center" 
+                            style="min-height: 250px; background-image: url('{{ $nextEvent->cover_image ? asset($nextEvent->cover_image) : 'https://placehold.co/600x400/696cff/ffffff?text=No+Image' }}'); background-size: cover; background-position: center;">
+                        </div>
 
-                            <div class="p-3 bg-lighter rounded-3 mb-4 d-inline-block border">
-                                <div class="d-flex gap-4 text-center" id="countdown-timer">
-                                    <div>
-                                        <h4 class="fw-bold text-primary mb-0" id="days">00</h4>
-                                        <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Days</small>
-                                    </div>
-                                    <div class="vr"></div>
-                                    <div>
-                                        <h4 class="fw-bold text-primary mb-0" id="hours">00</h4>
-                                        <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Hrs</small>
-                                    </div>
-                                    <div class="vr"></div>
-                                    <div>
-                                        <h4 class="fw-bold text-primary mb-0" id="minutes">00</h4>
-                                        <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Mins</small>
+                        <div class="col-md-7">
+                            <div class="card-body p-4 d-flex flex-column justify-content-center h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-label-primary rounded-pill">
+                                        {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('M d, Y') }}
+                                    </span>
+                                    <small class="text-muted fw-bold">
+                                        <i class="bx bx-time-five me-1"></i>
+                                        {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('h:i A') }}
+                                    </small>
+                                </div>
+
+                                <h3 class="card-title fw-bold text-dark mb-2">{{ $nextEvent->title }}</h3>
+                                
+                                <p class="card-text text-muted mb-3 small">
+                                    {{ Str::limit($nextEvent->description ?? 'No description provided.', 80) }}
+                                </p>
+
+                                <div class="p-2 bg-lighter rounded-3 mb-3 border">
+                                    <div class="d-flex justify-content-around text-center" id="countdown-timer">
+                                        <div>
+                                            <h5 class="fw-bold text-primary mb-0" id="days">00</h5>
+                                            <small class="text-muted" style="font-size: 0.65rem;">DAYS</small>
+                                        </div>
+                                        <div class="vr"></div>
+                                        <div>
+                                            <h5 class="fw-bold text-primary mb-0" id="hours">00</h5>
+                                            <small class="text-muted" style="font-size: 0.65rem;">HRS</small>
+                                        </div>
+                                        <div class="vr"></div>
+                                        <div>
+                                            <h5 class="fw-bold text-primary mb-0" id="minutes">00</h5>
+                                            <small class="text-muted" style="font-size: 0.65rem;">MINS</small>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="mb-4">
-                                @php
-                                    $capacity = $nextEvent->capacity ?? 100; // Avoid division by zero
-                                    $acceptedCount = $nextEvent->accepted_count ?? 0;
-                                    $percentage = $capacity > 0 ? ($acceptedCount / $capacity) * 100 : 0;
-                                @endphp
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small class="fw-bold text-heading">Guest Capacity</small>
-                                    <small class="text-muted">{{ $acceptedCount }} / {{ $capacity }} Accepted</small>
+                                <div class="mb-3">
+                                    @php
+                                        $capacity = $nextEvent->capacity ?? 100;
+                                        $acceptedCount = $nextEvent->accepted_count ?? 0;
+                                        $percentage = $capacity > 0 ? ($acceptedCount / $capacity) * 100 : 0;
+                                    @endphp
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="fw-bold text-heading">Capacity</small>
+                                        <small class="text-muted">{{ $acceptedCount }} / {{ $capacity }}</small>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percentage }}%"></div>
+                                    </div>
                                 </div>
-                                <div class="progress" style="height: 8px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percentage }}%"></div>
-                                </div>
-                            </div>
 
-                            <button type="button" class="btn btn-outline-primary view-event-btn" data-id="{{ $nextEvent->id }}">
-                                Manage Details <i class="bx bx-right-arrow-alt ms-1"></i>
-                            </button>
+                                <button type="button" class="btn btn-outline-primary w-100 view-event-btn" data-id="{{ $nextEvent->id }}">
+                                    Manage Details
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div class="card h-100 d-flex align-items-center justify-content-center p-5">
+                    <div class="text-center">
+                        <i class="bx bx-calendar-plus bx-lg text-muted mb-3"></i>
+                        <h5>No Upcoming Events</h5>
+                        <p class="text-muted">You have no scheduled events coming up.</p>
+                        <a href="#" class="btn btn-primary">Create Event</a>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
     @endif

@@ -35,14 +35,30 @@ class ClientController extends Controller
                                     $query->where('event_guest.status', 'accepted');
                                 }])
                                 ->first();
+        $recentActivities = DB::table('event_guest')
+                                ->join('events', 'event_guest.event_id', '=', 'events.id')
+                                ->join('users', 'event_guest.user_id', '=', 'users.id')
+                                ->where('events.client_id', $clientId)
+                                // CHANGE 1: Allow accepted, declined, AND cancelled
+                                ->whereIn('event_guest.status', ['accepted', 'declined', 'cancelled']) 
+                                ->orderBy('event_guest.updated_at', 'desc')
+                                ->select(
+                                    'users.firstname', 
+                                    'users.lastname', 
+                                    'events.title as event_title', 
+                                    'event_guest.updated_at',
+                                    'event_guest.status' // CHANGE 2: We need this to decide the color/icon
+                                )
+                                ->limit(5)
+                                ->get();
 
-        // --- Return data to the view ---
         return view('client.dashboard', compact(
             'totalEvents', 
             'upcomingEvents', 
             'completedEvents', 
             'cancelledEvents',
-            'nextEvent'
+            'nextEvent',
+            'recentActivities' // <--- Add this variable
         ));
     }
 
