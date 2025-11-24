@@ -2,52 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller; // ⬅️ ADD THIS LINE (or verify it exists)
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class GuestController extends Controller // ⬅️ The parent class is now correctly referenced
+class GuestController extends Controller
 {
     public function dashboard()
+        {
+            $guestId = Auth::id();
+
+            // 1. Fetch "My Tickets" (Accepted & Future)
+            $myTickets = Event::whereHas('guests', function ($query) use ($guestId) {
+                    $query->where('user_id', $guestId)
+                        ->where('event_guest.status', 'accepted'); 
+                })
+                ->where('end_date', '>=', now()) 
+                ->with('client') 
+                ->orderBy('start_date', 'asc')
+                ->get();
+
+            // 2. NEW: Fetch "Pending Invitations"
+            $pendingInvites = Event::whereHas('guests', function ($query) use ($guestId) {
+                    $query->where('user_id', $guestId)
+                        ->where('event_guest.status', 'pending'); // <--- Pending status
+                })
+                ->where('end_date', '>=', now()) // Only show future events
+                ->with('client')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // 3. Calculate Counts
+            $upcomingEvents = $myTickets->count(); 
+            $totalEvents    = $myTickets->count() + $pendingInvites->count(); // Accepted + Pending
+            $completedEvents = 0; // Simplification for now
+            $cancelledEvents = 0; 
+
+            return view('guest.dashboard', compact(
+                'myTickets', 
+                'pendingInvites', // <--- Pass this to view
+                'upcomingEvents', 
+                'totalEvents', 
+                'completedEvents', 
+                'cancelledEvents'
+            ));
+        }
+
+    public function events()
     {
-        $guestId = auth()->id(); 
-
-        $invitedEventsQuery = Event::whereHas('guests', function ($query) use ($guestId) {
-            $query->where('user_id', $guestId); 
-        });
+        $guestId = Auth::id();
         
-        // --- Calculate Counts ---
-        $totalEvents = $invitedEventsQuery->count();
-        $upcomingEvents = $invitedEventsQuery->clone()->where('status', 'upcoming')->count();
-        $completedEvents = $invitedEventsQuery->clone()->where('status', 'completed')->count();
-        $cancelledEvents = $invitedEventsQuery->clone()->where('status', 'cancelled')->count();
-
-        return view('guest.dashboard', compact('totalEvents', 'upcomingEvents', 'completedEvents', 'cancelledEvents'));
-    }
-
-    public function events() // ⬅️ THIS NAME MUST MATCH THE ROUTE'S CALL
-    {
-        $guestId = auth()->id();
-        
-        // Fetch all events where the current user is listed as a guest
-        // Assumes 'guests' relationship is defined in Event model
         $events = Event::whereHas('guests', function ($query) use ($guestId) {
             $query->where('user_id', $guestId); 
         })->get();
 
-        // Return the DataTable view for the guest
         return view('guest.events', compact('events')); 
     }
 
     public function getEventsAjax()
     {
-        if (!auth()->check()) {
+        if (!Auth::check()) {
             return response()->json(['data' => []], 401);
         }
         
         try {
-            $guestId = auth()->id();
+            $guestId = Auth::id();
             
             $events = Event::whereHas('guests', function ($query) use ($guestId) {
                     $query->where('user_id', $guestId); 
@@ -57,7 +79,6 @@ class GuestController extends Controller // ⬅️ The parent class is now corre
                 }])
                 ->get()
                 ->map(function ($event) {
-                    // Get the invitation status from the pivot table
                     $invitationStatus = $event->guests->first()->pivot->status ?? 'pending';
                     
                     return [
@@ -67,31 +88,28 @@ class GuestController extends Controller // ⬅️ The parent class is now corre
                         'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
                         'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
                         'status' => $event->status,
-                        'invitation_status' => $invitationStatus, // Add this
+                        'invitation_status' => $invitationStatus,
                     ];
                 });
 
             return response()->json(['data' => $events], 200); 
 
         } catch (\Exception $e) {
-            \Log::error("Guest AJAX DataTables Error: " . $e->getMessage());
+            Log::error("Guest AJAX DataTables Error: " . $e->getMessage());
             return response()->json(['data' => [], 'error' => 'Server failed to retrieve data.'], 500); 
         }
     }
 
-    // Show event
     public function show($id)
     {
-        $guestId = auth()->id();
+        $guestId = Auth::id();
         
-        // Make sure the guest is actually invited to this event
         $event = Event::whereHas('guests', function ($query) use ($guestId) {
                 $query->where('user_id', $guestId);
             })
             ->with('organizer:id,firstname,lastname,middlename')
             ->findOrFail($id);
         
-        // Add full_name attribute for the organizer
         if ($event->organizer) {
             $event->organizer->full_name = trim(
                 $event->organizer->firstname . ' ' . 
@@ -109,10 +127,9 @@ class GuestController extends Controller // ⬅️ The parent class is now corre
             'status' => 'required|in:accepted,declined,cancelled'
         ]);
         
-        $guestId = auth()->id();
+        $guestId = Auth::id();
         
-        // Update the status in the event_guest pivot table
-        $updated = \DB::table('event_guest')
+        $updated = DB::table('event_guest')
             ->where('event_id', $eventId)
             ->where('user_id', $guestId)
             ->update(['status' => $request->status]);
@@ -125,7 +142,7 @@ class GuestController extends Controller // ⬅️ The parent class is now corre
             ];
             
             $message = $statusMessages[$request->status] ?? 'Invitation status updated.';
-                
+            
             return response()->json(['message' => $message], 200);
         }
         

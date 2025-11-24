@@ -93,6 +93,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
     // Public — guest accepts invitation
 Route::get('/invitation/accept/{token}', [InviteGuestController::class, 'acceptInvite'])->name('invitation.accept');
 
+// InviteGuest Route (idk lmao)
+Route::get('/rsvp/{event}/{user}/{status}', [InviteGuestController::class, 'respond'])
+    ->name('rsvp.respond')
+    ->middleware('signed');
+
 //Guest Routes
 Route::middleware(['auth'])->name('guest.')->group(function () {
     Route::get('/guest/dashboard', [GuestController::class, 'dashboard'])->name('dashboard');
