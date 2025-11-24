@@ -78,6 +78,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
          // Send invitation
        // Route::post('/client/events/{event}/invite', [InviteGuestController::class, 'sendInvite'])->name('client.invite.guest');
 
+       // View Guests
+       Route::get('/client/events/{eventId}/guests', [ClientController::class, 'getGuestsList']);
+
 
     });
 

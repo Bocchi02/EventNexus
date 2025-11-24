@@ -146,6 +146,47 @@
                 </div>
                 </div>
 
+                <!-- View Guests List Modal -->
+                <div class="modal fade" id="viewGuestsModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="viewGuestsTitle">Guests for Event: </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{-- Table to display registered guests --}}
+                                <h6>Registered Guests</h6>
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-sm" id="registeredGuestsTable">
+                                        <thead>
+                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Guests will be inserted here by AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Table to display pending invitations --}}
+                                <h6>Pending Invitations</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="pendingGuestsTable">
+                                        <thead>
+                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Pending guests will be inserted here by AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 </div>
 @endsection
@@ -264,12 +305,12 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
+                                <a href="javascript:void(0);" class="dropdown-item view-guests-btn" data-event-id="${full.id}"> 
                                 View Guests
                                 </a>
                             </li>
                         </div>`;
-                    },
+                    },//gagi watashit man
                 }
 
             ],
@@ -436,9 +477,59 @@
         });
     });
 
+    // View Guests List Handler
+    $(document).on("click", ".view-guests-btn", function () {
+        const eventId = $(this).data("event-id");
 
+        // Clear previous data
+        $("#viewGuestsTitle").text("Guests for Event: Loading...");
+        $("#registeredGuestsTable tbody").empty();
+        $("#pendingGuestsTable tbody").empty();
+        $("#viewGuestsModal").modal("show");
 
+        $.ajax({
+            url: `/client/events/${eventId}/guests`, 
+            method: "GET",
+            success: function (response) {
+                $("#viewGuestsTitle").text(`Guests for Event: ${response.eventTitle}`);
+                
+                // Render Registered Guests
+                if (response.registered.length > 0) {
+                    response.registered.forEach(guest => {
+                        // Use guest.full_name since we mapped it in the controller
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td> 
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-success">Confirmed</span></td>
+                            </tr>`;
+                        $("#registeredGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#registeredGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No confirmed guests yet.</td></tr>');
+                }
 
+                // Render Pending Guests
+                if (response.pending.length > 0) {
+                    response.pending.forEach(invite => {
+                        // Use invite.full_name since we mapped it in the controller
+                        const row = `
+                            <tr>
+                                <td>${invite.full_name}</td>
+                                <td>${invite.email}</td>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                            </tr>`;
+                        $("#pendingGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#pendingGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No pending invitations.</td></tr>');
+                }
+            },
+            error: function () {
+                $("#viewGuestsTitle").text("Error loading guest list.");
+            }
+        });
+    });
 
 
 

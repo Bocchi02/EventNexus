@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\GuestInvitationMail;
 use App\Models\PendingGuest;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
@@ -79,4 +80,47 @@ class ClientController extends Controller
         return response()->json($event);
     }
 
+
+    // View Guest
+    public function getGuestsList($eventId) 
+{
+    $event = Event::findOrFail($eventId);
+    
+    // Get registered/accepted guests from event_guest pivot table
+    $registeredGuests = \DB::table('event_guest')
+        ->join('users', 'event_guest.user_id', '=', 'users.id')
+        ->where('event_guest.event_id', $eventId)
+        ->whereIn('event_guest.status', ['accepted', 'pending']) // Include accepted guests
+        ->select(
+            'users.firstname', 
+            'users.middlename', 
+            'users.lastname', 
+            'users.email',
+            'event_guest.status'
+        )
+        ->get()
+        ->map(function($guest) {
+            return [
+                'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                'email' => $guest->email,
+                'status' => $guest->status
+            ];
+        });
+    
+    // Get pending invitations from pending_guests table (not yet registered users)
+    $pendingGuests = PendingGuest::where('event_id', $eventId)
+        ->get()
+        ->map(function($invite) {
+            return [
+                'full_name' => trim($invite->firstname . ' ' . ($invite->middlename ?? '') . ' ' . $invite->lastname),
+                'email' => $invite->email
+            ];
+        });
+    
+    return response()->json([
+        'eventTitle' => $event->title,
+        'registered' => $registeredGuests->where('status', 'accepted'), // Only show accepted
+        'pending' => $pendingGuests
+    ]);
+}
 }
