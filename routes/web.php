@@ -78,8 +78,14 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
          // Send invitation
        // Route::post('/client/events/{event}/invite', [InviteGuestController::class, 'sendInvite'])->name('client.invite.guest');
 
-       // View Guests
-       Route::get('/client/events/{eventId}/guests', [ClientController::class, 'getGuestsList']);
+        // View Guests
+        Route::get('/client/events/{eventId}/guests', [ClientController::class, 'getGuestsList']);
+
+        // Cancel Event
+        Route::post('/client/events/{eventId}/cancel', [ClientController::class, 'cancel']);
+
+        // Delete Event
+        Route::delete('/client/events/{eventId}', [ClientController::class, 'destroy']);
 
 
     });

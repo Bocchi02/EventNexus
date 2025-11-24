@@ -191,4 +191,25 @@ class ClientController extends Controller
             'pending' => $pendingGuests
         ]);
     }
+
+    // Cancel Event
+    public function cancel($id)
+    {
+        $event = Event::where('client_id', Auth::id())->findOrFail($id);
+        
+        
+        $event->update(['status' => 'cancelled']);
+        
+        return response()->json(['message' => 'Event cancelled successfully']);
+    }
+
+    // Delete Event
+    public function destroy($id)
+    {
+        $event = Event::where('client_id', Auth::id())->findOrFail($id);
+        
+        $event->delete(); 
+        
+        return response()->json(['message' => 'Event deleted successfully']);
+    }
 }

@@ -334,36 +334,56 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full) {
-                        const deleteUrl = `/organizer/events/${full.id}`;
-
-                        // 🧠 Check if event is already cancelled or completed
-                        const isCancelled = full.status === "cancelled" || full.status === "completed";
-                        const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-danger";
-                        const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
+                        // Logic: Only show "Cancel" if event is Upcoming
+                        let cancelButton = '';
+                        if (full.status === 'upcoming') {
+                            cancelButton = `
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item text-warning cancel-event-btn" data-id="${full.id}">
+                                        <i class="bx bx-block me-1"></i> Cancel Event
+                                    </a>
+                                </li>`;
+                        }
 
                         return `
-                        <div class="d-inline-block">
-                            <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
-                            <i class="bx bx-dots-vertical-rounded bx-md"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end m-0">
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
-                                View
+                            <div class="d-inline-block">
+                                <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded bx-md"></i>
                                 </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
-                                Invite Guests
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item view-guests-btn" data-event-id="${full.id}"> 
-                                View Guests
-                                </a>
-                            </li>
-                        </div>`;
-                    },//gagi watashit man
+                                <ul class="dropdown-menu dropdown-menu-end m-0">
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
+                                            <i class="bx bx-show me-1"></i> View
+                                        </a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
+                                            <i class="bx bx-envelope me-1"></i> Invite Guests
+                                        </a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item view-guests-btn" data-event-id="${full.id}"> 
+                                            <i class="bx bx-group me-1"></i> Guest List
+                                        </a>
+                                    </li>
+
+                                    ${cancelButton ? '<li><hr class="dropdown-divider"></li>' : ''}
+
+                                    ${cancelButton}
+
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item text-danger delete-event-btn" data-id="${full.id}">
+                                            <i class="bx bx-trash me-1"></i> Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>`;
+                    },
                 }
 
             ],
@@ -561,7 +581,7 @@
                 $("#count-pending").text(response.pending ? response.pending.length : 0);
                 $("#count-declined").text(response.declined ? response.declined.length : 0);
                 $("#count-cancelled").text(response.cancelled ? response.cancelled.length : 0);
-                
+
                 // --- Accepted Guests ---
                 if (response.accepted && response.accepted.length > 0) {
                     response.accepted.forEach(guest => {
@@ -628,6 +648,68 @@
         });
     });
 
+    // Cancel Event Handler
+    $(document).on("click", ".cancel-event-btn", function () {
+        const eventId = $(this).data("id");
+
+        Swal.fire({
+            title: 'Cancel this event?',
+            text: "Guests will be notified. This cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ffbb33',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/client/events/${eventId}/cancel`,
+                    type: "POST",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Cancelled!', 'The event has been cancelled.', 'success');
+                        $('.datatables-basic').DataTable().ajax.reload(); // Reload table
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Something went wrong.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Delete event handler
+    $(document).on("click", ".delete-event-btn", function () {
+        const eventId = $(this).data("id");
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/client/events/${eventId}`,
+                    type: "DELETE",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Deleted!', 'Your event has been deleted.', 'success');
+                        $('.datatables-basic').DataTable().ajax.reload();
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to delete event.', 'error');
+                    }
+                });
+            }
+        });
+    });
 
 </script>
 @endsection
