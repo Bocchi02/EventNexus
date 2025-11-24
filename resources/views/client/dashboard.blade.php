@@ -169,14 +169,21 @@
 
                         <div class="col-md-7">
                             <div class="card-body p-4 d-flex flex-column justify-content-center h-100">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="badge bg-label-primary rounded-pill">
-                                        {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('M d, Y') }}
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                        Next on Schedule
                                     </span>
-                                    <small class="text-muted fw-bold">
-                                        <i class="bx bx-time-five me-1"></i>
-                                        {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('h:i A') }}
-                                    </small>
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-label-primary rounded-pill">
+                                            {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('M d, Y') }}
+                                        </span>
+                                        <small class="text-muted fw-bold">
+                                            <i class="bx bx-time-five me-1"></i>
+                                            {{ \Carbon\Carbon::parse($nextEvent->start_date)->format('h:i A') }}
+                                        </small>
+                                    </div>
                                 </div>
 
                                 <h3 class="card-title fw-bold text-dark mb-2">{{ $nextEvent->title }}</h3>
