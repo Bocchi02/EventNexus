@@ -110,11 +110,20 @@ class ClientController extends Controller
     {
         $event = Event::findOrFail($eventId);
         
-        // Get all guests with different statuses from event_guest pivot table
-        $acceptedGuests = \DB::table('event_guest')
+        // Helper function to format guest data
+        $formatGuest = function($guest) {
+            return [
+                'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                'email' => $guest->email,
+                'status' => $guest->status ?? 'pending' // Default to pending if missing
+            ];
+        };
+
+        // 1. Get Guests from the Pivot Table (Registered Users)
+        // We fetch ALL statuses here, including 'pending'
+        $pivotGuests = \DB::table('event_guest')
             ->join('users', 'event_guest.user_id', '=', 'users.id')
             ->where('event_guest.event_id', $eventId)
-            ->where('event_guest.status', 'accepted')
             ->select(
                 'users.firstname', 
                 'users.middlename', 
@@ -122,73 +131,36 @@ class ClientController extends Controller
                 'users.email',
                 'event_guest.status'
             )
-            ->get()
-            ->map(function($guest) {
-                return [
-                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
-                    'email' => $guest->email,
-                    'status' => $guest->status
-                ];
-            });
+            ->get();
+
+        // Separate them into categories
+        $acceptedGuests = $pivotGuests->where('status', 'accepted')->map($formatGuest)->values();
+        $declinedGuests = $pivotGuests->where('status', 'declined')->map($formatGuest)->values();
+        $cancelledGuests = $pivotGuests->where('status', 'cancelled')->map($formatGuest)->values();
         
-        // Get declined guests
-        $declinedGuests = \DB::table('event_guest')
-            ->join('users', 'event_guest.user_id', '=', 'users.id')
-            ->where('event_guest.event_id', $eventId)
-            ->where('event_guest.status', 'declined')
-            ->select(
-                'users.firstname', 
-                'users.middlename', 
-                'users.lastname', 
-                'users.email',
-                'event_guest.status'
-            )
-            ->get()
-            ->map(function($guest) {
-                return [
-                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
-                    'email' => $guest->email,
-                    'status' => $guest->status
-                ];
-            });
+        // THIS WAS MISSING: Get 'pending' guests from the main list
+        $pendingPivotGuests = $pivotGuests->where('status', 'pending')->map($formatGuest)->values();
         
-        // Get cancelled guests
-        $cancelledGuests = \DB::table('event_guest')
-            ->join('users', 'event_guest.user_id', '=', 'users.id')
-            ->where('event_guest.event_id', $eventId)
-            ->where('event_guest.status', 'cancelled')
-            ->select(
-                'users.firstname', 
-                'users.middlename', 
-                'users.lastname', 
-                'users.email',
-                'event_guest.status'
-            )
-            ->get()
-            ->map(function($guest) {
-                return [
-                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
-                    'email' => $guest->email,
-                    'status' => $guest->status
-                ];
-            });
-        
-        // Get pending invitations from pending_guests table (not yet registered users)
-        $pendingGuests = PendingGuest::where('event_id', $eventId)
+        // 2. Get Guests from PendingGuests table (Unregistered/Email Invites)
+        $pendingTableGuests = PendingGuest::where('event_id', $eventId)
             ->get()
             ->map(function($invite) {
                 return [
                     'full_name' => trim($invite->firstname . ' ' . ($invite->middlename ?? '') . ' ' . $invite->lastname),
-                    'email' => $invite->email
+                    'email' => $invite->email,
+                    'status' => 'pending'
                 ];
             });
+
+        // 3. Merge both Pending lists (Pivot + Table)
+        $allPending = $pendingPivotGuests->merge($pendingTableGuests);
         
         return response()->json([
             'eventTitle' => $event->title,
             'accepted' => $acceptedGuests,
             'declined' => $declinedGuests,
             'cancelled' => $cancelledGuests,
-            'pending' => $pendingGuests
+            'pending' => $allPending // Now contains everyone!
         ]);
     }
 
