@@ -83,44 +83,88 @@ class ClientController extends Controller
 
     // View Guest
     public function getGuestsList($eventId) 
-{
-    $event = Event::findOrFail($eventId);
-    
-    // Get registered/accepted guests from event_guest pivot table
-    $registeredGuests = \DB::table('event_guest')
-        ->join('users', 'event_guest.user_id', '=', 'users.id')
-        ->where('event_guest.event_id', $eventId)
-        ->whereIn('event_guest.status', ['accepted', 'pending']) // Include accepted guests
-        ->select(
-            'users.firstname', 
-            'users.middlename', 
-            'users.lastname', 
-            'users.email',
-            'event_guest.status'
-        )
-        ->get()
-        ->map(function($guest) {
-            return [
-                'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
-                'email' => $guest->email,
-                'status' => $guest->status
-            ];
-        });
-    
-    // Get pending invitations from pending_guests table (not yet registered users)
-    $pendingGuests = PendingGuest::where('event_id', $eventId)
-        ->get()
-        ->map(function($invite) {
-            return [
-                'full_name' => trim($invite->firstname . ' ' . ($invite->middlename ?? '') . ' ' . $invite->lastname),
-                'email' => $invite->email
-            ];
-        });
-    
-    return response()->json([
-        'eventTitle' => $event->title,
-        'registered' => $registeredGuests->where('status', 'accepted'), // Only show accepted
-        'pending' => $pendingGuests
-    ]);
-}
+    {
+        $event = Event::findOrFail($eventId);
+        
+        // Get all guests with different statuses from event_guest pivot table
+        $acceptedGuests = \DB::table('event_guest')
+            ->join('users', 'event_guest.user_id', '=', 'users.id')
+            ->where('event_guest.event_id', $eventId)
+            ->where('event_guest.status', 'accepted')
+            ->select(
+                'users.firstname', 
+                'users.middlename', 
+                'users.lastname', 
+                'users.email',
+                'event_guest.status'
+            )
+            ->get()
+            ->map(function($guest) {
+                return [
+                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                    'email' => $guest->email,
+                    'status' => $guest->status
+                ];
+            });
+        
+        // Get declined guests
+        $declinedGuests = \DB::table('event_guest')
+            ->join('users', 'event_guest.user_id', '=', 'users.id')
+            ->where('event_guest.event_id', $eventId)
+            ->where('event_guest.status', 'declined')
+            ->select(
+                'users.firstname', 
+                'users.middlename', 
+                'users.lastname', 
+                'users.email',
+                'event_guest.status'
+            )
+            ->get()
+            ->map(function($guest) {
+                return [
+                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                    'email' => $guest->email,
+                    'status' => $guest->status
+                ];
+            });
+        
+        // Get cancelled guests
+        $cancelledGuests = \DB::table('event_guest')
+            ->join('users', 'event_guest.user_id', '=', 'users.id')
+            ->where('event_guest.event_id', $eventId)
+            ->where('event_guest.status', 'cancelled')
+            ->select(
+                'users.firstname', 
+                'users.middlename', 
+                'users.lastname', 
+                'users.email',
+                'event_guest.status'
+            )
+            ->get()
+            ->map(function($guest) {
+                return [
+                    'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                    'email' => $guest->email,
+                    'status' => $guest->status
+                ];
+            });
+        
+        // Get pending invitations from pending_guests table (not yet registered users)
+        $pendingGuests = PendingGuest::where('event_id', $eventId)
+            ->get()
+            ->map(function($invite) {
+                return [
+                    'full_name' => trim($invite->firstname . ' ' . ($invite->middlename ?? '') . ' ' . $invite->lastname),
+                    'email' => $invite->email
+                ];
+            });
+        
+        return response()->json([
+            'eventTitle' => $event->title,
+            'accepted' => $acceptedGuests,
+            'declined' => $declinedGuests,
+            'cancelled' => $cancelledGuests,
+            'pending' => $pendingGuests
+        ]);
+    }
 }

@@ -148,35 +148,61 @@
 
                 <!-- View Guests List Modal -->
                 <div class="modal fade" id="viewGuestsModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="viewGuestsTitle">Guests for Event: </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                {{-- Table to display registered guests --}}
-                                <h6>Registered Guests</h6>
+                                {{-- Table to display accepted guests --}}
+                                <h6 class="text-success">✓ Accepted Guests</h6>
                                 <div class="table-responsive mb-4">
-                                    <table class="table table-sm" id="registeredGuestsTable">
+                                    <table class="table table-sm table-hover" id="acceptedGuestsTable">
                                         <thead>
                                             <tr><th>Name</th><th>Email</th><th>Status</th></tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Guests will be inserted here by AJAX -->
+                                            <!-- Accepted guests will be inserted here by AJAX -->
                                         </tbody>
                                     </table>
                                 </div>
 
                                 {{-- Table to display pending invitations --}}
-                                <h6>Pending Invitations</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm" id="pendingGuestsTable">
+                                <h6 class="text-warning">⏳ Pending Invitations</h6>
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-sm table-hover" id="pendingGuestsTable">
                                         <thead>
                                             <tr><th>Name</th><th>Email</th><th>Status</th></tr>
                                         </thead>
                                         <tbody>
                                             <!-- Pending guests will be inserted here by AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Table to display declined guests --}}
+                                <h6 class="text-danger">✗ Declined Invitations</h6>
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-sm table-hover" id="declinedGuestsTable">
+                                        <thead>
+                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Declined guests will be inserted here by AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{-- Table to display cancelled guests --}}
+                                <h6 class="text-secondary">⊗ Cancelled Attendance</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover" id="cancelledGuestsTable">
+                                        <thead>
+                                            <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Cancelled guests will be inserted here by AJAX -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -483,8 +509,10 @@
 
         // Clear previous data
         $("#viewGuestsTitle").text("Guests for Event: Loading...");
-        $("#registeredGuestsTable tbody").empty();
+        $("#acceptedGuestsTable tbody").empty();
         $("#pendingGuestsTable tbody").empty();
+        $("#declinedGuestsTable tbody").empty();
+        $("#cancelledGuestsTable tbody").empty();
         $("#viewGuestsModal").modal("show");
 
         $.ajax({
@@ -493,26 +521,24 @@
             success: function (response) {
                 $("#viewGuestsTitle").text(`Guests for Event: ${response.eventTitle}`);
                 
-                // Render Registered Guests
-                if (response.registered.length > 0) {
-                    response.registered.forEach(guest => {
-                        // Use guest.full_name since we mapped it in the controller
+                // Render Accepted Guests
+                if (response.accepted && response.accepted.length > 0) {
+                    response.accepted.forEach(guest => {
                         const row = `
                             <tr>
                                 <td>${guest.full_name}</td> 
                                 <td>${guest.email}</td>
-                                <td><span class="badge bg-success">Confirmed</span></td>
+                                <td><span class="badge bg-success">Accepted</span></td>
                             </tr>`;
-                        $("#registeredGuestsTable tbody").append(row);
+                        $("#acceptedGuestsTable tbody").append(row);
                     });
                 } else {
-                    $("#registeredGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No confirmed guests yet.</td></tr>');
+                    $("#acceptedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No accepted guests yet.</td></tr>');
                 }
 
-                // Render Pending Guests
-                if (response.pending.length > 0) {
+                // Render Pending Invitations
+                if (response.pending && response.pending.length > 0) {
                     response.pending.forEach(invite => {
-                        // Use invite.full_name since we mapped it in the controller
                         const row = `
                             <tr>
                                 <td>${invite.full_name}</td>
@@ -523,6 +549,36 @@
                     });
                 } else {
                     $("#pendingGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No pending invitations.</td></tr>');
+                }
+
+                // Render Declined Guests
+                if (response.declined && response.declined.length > 0) {
+                    response.declined.forEach(guest => {
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td>
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-danger">Declined</span></td>
+                            </tr>`;
+                        $("#declinedGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#declinedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No declined invitations.</td></tr>');
+                }
+
+                // Render Cancelled Guests
+                if (response.cancelled && response.cancelled.length > 0) {
+                    response.cancelled.forEach(guest => {
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td>
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-secondary">Cancelled</span></td>
+                            </tr>`;
+                        $("#cancelledGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#cancelledGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No cancelled attendance.</td></tr>');
                 }
             },
             error: function () {

@@ -91,7 +91,9 @@ Route::get('/invitation/accept/{token}', [InviteGuestController::class, 'acceptI
 Route::middleware(['auth'])->name('guest.')->group(function () {
     Route::get('/guest/dashboard', [GuestController::class, 'dashboard'])->name('dashboard');
     Route::get('/guest/events', [GuestController::class, 'events'])->name('events');
-    Route::get('/getEvents', [GuestController::class, 'getEventsAjax'])->name('getEvents');
+    Route::get('/guest/getEvents', [GuestController::class, 'getEventsAjax'])->name('guest.getEvents');
+    Route::get('/guest/events/{id}', [GuestController::class, 'show'])->name('show');
+    Route::post('/guest/events/{eventId}/respond', [GuestController::class, 'respondToInvitation'])->name('respond');
 });
 
 require __DIR__.'/auth.php';
