@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\GuestInvitationMail;
 use App\Models\PendingGuest;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
@@ -27,13 +28,37 @@ class ClientController extends Controller
         $cancelledEvents = Event::where('client_id', $clientId)
                                 ->where('status', 'cancelled')
                                 ->count();
+        $nextEvent = Event::where('client_id', $clientId)
+                                ->where('start_date', '>=', now()) 
+                                ->orderBy('start_date', 'asc')     
+                                ->withCount(['guests as accepted_count' => function ($query) {
+                                    $query->where('event_guest.status', 'accepted');
+                                }])
+                                ->first();
+        $recentActivities = DB::table('event_guest')
+                                ->join('events', 'event_guest.event_id', '=', 'events.id')
+                                ->join('users', 'event_guest.user_id', '=', 'users.id')
+                                ->where('events.client_id', $clientId)
+                                // CHANGE 1: Allow accepted, declined, AND cancelled
+                                ->whereIn('event_guest.status', ['accepted', 'declined', 'cancelled']) 
+                                ->orderBy('event_guest.updated_at', 'desc')
+                                ->select(
+                                    'users.firstname', 
+                                    'users.lastname', 
+                                    'events.title as event_title', 
+                                    'event_guest.updated_at',
+                                    'event_guest.status' // CHANGE 2: We need this to decide the color/icon
+                                )
+                                ->limit(5)
+                                ->get();
 
-        // --- Return data to the view ---
         return view('client.dashboard', compact(
             'totalEvents', 
             'upcomingEvents', 
             'completedEvents', 
-            'cancelledEvents'
+            'cancelledEvents',
+            'nextEvent',
+            'recentActivities' // <--- Add this variable
         ));
     }
 
@@ -79,4 +104,84 @@ class ClientController extends Controller
         return response()->json($event);
     }
 
+
+    // View Guest
+    public function getGuestsList($eventId) 
+    {
+        $event = Event::findOrFail($eventId);
+        
+        // Helper function to format guest data
+        $formatGuest = function($guest) {
+            return [
+                'full_name' => trim($guest->firstname . ' ' . ($guest->middlename ?? '') . ' ' . $guest->lastname),
+                'email' => $guest->email,
+                'status' => $guest->status ?? 'pending' // Default to pending if missing
+            ];
+        };
+
+        // 1. Get Guests from the Pivot Table (Registered Users)
+        // We fetch ALL statuses here, including 'pending'
+        $pivotGuests = \DB::table('event_guest')
+            ->join('users', 'event_guest.user_id', '=', 'users.id')
+            ->where('event_guest.event_id', $eventId)
+            ->select(
+                'users.firstname', 
+                'users.middlename', 
+                'users.lastname', 
+                'users.email',
+                'event_guest.status'
+            )
+            ->get();
+
+        // Separate them into categories
+        $acceptedGuests = $pivotGuests->where('status', 'accepted')->map($formatGuest)->values();
+        $declinedGuests = $pivotGuests->where('status', 'declined')->map($formatGuest)->values();
+        $cancelledGuests = $pivotGuests->where('status', 'cancelled')->map($formatGuest)->values();
+        
+        // THIS WAS MISSING: Get 'pending' guests from the main list
+        $pendingPivotGuests = $pivotGuests->where('status', 'pending')->map($formatGuest)->values();
+        
+        // 2. Get Guests from PendingGuests table (Unregistered/Email Invites)
+        $pendingTableGuests = PendingGuest::where('event_id', $eventId)
+            ->get()
+            ->map(function($invite) {
+                return [
+                    'full_name' => trim($invite->firstname . ' ' . ($invite->middlename ?? '') . ' ' . $invite->lastname),
+                    'email' => $invite->email,
+                    'status' => 'pending'
+                ];
+            });
+
+        // 3. Merge both Pending lists (Pivot + Table)
+        $allPending = $pendingPivotGuests->merge($pendingTableGuests);
+        
+        return response()->json([
+            'eventTitle' => $event->title,
+            'accepted' => $acceptedGuests,
+            'declined' => $declinedGuests,
+            'cancelled' => $cancelledGuests,
+            'pending' => $allPending // Now contains everyone!
+        ]);
+    }
+
+    // Cancel Event
+    public function cancel($id)
+    {
+        $event = Event::where('client_id', Auth::id())->findOrFail($id);
+        
+        
+        $event->update(['status' => 'cancelled']);
+        
+        return response()->json(['message' => 'Event cancelled successfully']);
+    }
+
+    // Delete Event
+    public function destroy($id)
+    {
+        $event = Event::where('client_id', Auth::id())->findOrFail($id);
+        
+        $event->delete(); 
+        
+        return response()->json(['message' => 'Event deleted successfully']);
+    }
 }

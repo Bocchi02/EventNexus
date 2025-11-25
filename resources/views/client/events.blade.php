@@ -146,6 +146,100 @@
                 </div>
                 </div>
 
+                <!-- View Guests List Modal -->
+                <div class="modal fade" id="viewGuestsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="viewGuestsTitle">Guests for Event: </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <ul class="nav nav-tabs mb-3" id="guestTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active text-success" id="accepted-tab" data-bs-toggle="tab" data-bs-target="#accepted-pane" type="button" role="tab">
+                                        ✓ Accepted 
+                                        <span class="badge bg-success-subtle text-success ms-1" id="count-accepted">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-warning" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-pane" type="button" role="tab">
+                                        ⏳ Pending 
+                                        <span class="badge bg-warning-subtle text-warning ms-1" id="count-pending">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-danger" id="declined-tab" data-bs-toggle="tab" data-bs-target="#declined-pane" type="button" role="tab">
+                                        ✗ Declined 
+                                        <span class="badge bg-danger-subtle text-danger ms-1" id="count-declined">0</span>
+                                    </button>
+                                </li>
+
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-secondary" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled-pane" type="button" role="tab">
+                                        ⊗ Cancelled 
+                                        <span class="badge bg-secondary-subtle text-secondary ms-1" id="count-cancelled">0</span>
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="guestTabsContent">
+                                
+                                <div class="tab-pane fade show active" id="accepted-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="acceptedGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="pending-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="pendingGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="declined-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="declinedGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="cancelled-pane" role="tabpanel" tabindex="0">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover" id="cancelledGuestsTable">
+                                            <thead>
+                                                <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 </div>
 @endsection
@@ -167,7 +261,7 @@
                 { data: "start_date" },
                 { data: "end_date" },
                 { data: "status" },
-                { data: null } // actions column
+                { data: null } // actions column    
             ],  
       columnDefs: [
                 {
@@ -240,43 +334,55 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full) {
-                        const deleteUrl = `/organizer/events/${full.id}`;
-
-                        // 🧠 Check if event is already cancelled or completed
-                        const isCancelled = full.status === "cancelled" || full.status === "completed";
-                        const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-danger";
-                        const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
+                        // Logic: Only show "Cancel" if event is Upcoming
+                        let cancelButton = '';
+                        if (full.status === 'upcoming') {
+                            cancelButton = `
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item text-warning cancel-event-btn" data-id="${full.id}">
+                                        <i class="bx bx-block me-1"></i> Cancel Event
+                                    </a>
+                                </li>`;
+                        }
 
                         return `
-                        <div class="d-inline-block">
-                            <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
-                            <i class="bx bx-dots-vertical-rounded bx-md"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end m-0">
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
-                                View
+                            <div class="d-inline-block">
+                                <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded bx-md"></i>
                                 </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
-                                Invite Guests
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
-                                ${cancelText}
-                                </a>
-                            </li>
-                            <div class="dropdown-divider"></div>
-                            <li>
-                                <a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a>
-                            </li>
-                            </ul>
-                        </div>
-                        <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
-                            <i class="bx bx-edit bx-md"></i>
-                        </a>`;
+                                <ul class="dropdown-menu dropdown-menu-end m-0">
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
+                                            <i class="bx bx-show me-1"></i> View
+                                        </a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item invite-guest-btn" data-event-id="${full.id}">
+                                            <i class="bx bx-envelope me-1"></i> Invite Guests
+                                        </a>
+                                    </li>
+                                    
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item view-guests-btn" data-event-id="${full.id}"> 
+                                            <i class="bx bx-group me-1"></i> Guest List
+                                        </a>
+                                    </li>
+
+                                    ${cancelButton ? '<li><hr class="dropdown-divider"></li>' : ''}
+
+                                    ${cancelButton}
+
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item text-danger delete-event-btn" data-id="${full.id}">
+                                            <i class="bx bx-trash me-1"></i> Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>`;
                     },
                 }
 
@@ -404,21 +510,6 @@
     $(document).on("click", ".invite-guest-btn", function () {
         currentEventId = $(this).data("event-id");
 
-        console.log("Invite clicked. Event ID =", currentEventId); // Debug
-
-        $("#inviteGuestModal").modal("show");
-    });
-
-
-    // Open invite modal
-    $(document).on("click", ".invite-guest-btn", function () {
-        const eventId = $(this).data("event-id");
-
-        // Set the hidden input value
-        $("#event_id").val(eventId);
-
-        console.log("Set event_id to:", eventId); // Debug
-
         $("#inviteGuestModal").modal("show");
     });
 
@@ -429,21 +520,12 @@
     $("#inviteGuestForm").on("submit", function (e) {
         e.preventDefault();
 
-        console.log("Submitting invite for event:", currentEventId); // Debug
-
         if (!currentEventId) {
             Swal.fire("Error!", "Event ID is missing!", "error");
             return;
         }
 
         let formData = new FormData(this);
-
-        // 🔍 DEBUG HERE — show what values exist
-        console.log("email =", formData.get("email"));
-        console.log("firstname =", formData.get("firstname"));
-        console.log("lastname =", formData.get("lastname"));
-        console.log("event_id =", formData.get("event_id"));
-
 
         $.ajax({
             url: `/client/events/${currentEventId}/invite`,
@@ -468,11 +550,166 @@
         });
     });
 
+    // View Guests List Handler
+    $(document).on("click", ".view-guests-btn", function () {
+        const eventId = $(this).data("event-id");
 
+        // Clear previous data
+        $("#viewGuestsTitle").text("Guests for Event: Loading...");
+        $("#acceptedGuestsTable tbody").empty();
+        $("#pendingGuestsTable tbody").empty();
+        $("#declinedGuestsTable tbody").empty();
+        $("#cancelledGuestsTable tbody").empty();
 
+        // ---------------------------------------------------------
+        // NEW: Reset the tab to the first one (Accepted) automatically
+        // ---------------------------------------------------------
+        var firstTabEl = document.querySelector('#guestTabs button[data-bs-target="#accepted-pane"]');
+        var firstTab = new bootstrap.Tab(firstTabEl);
+        firstTab.show();
+        // ---------------------------------------------------------
 
+        $("#viewGuestsModal").modal("show");
 
+        $.ajax({
+            url: `/client/events/${eventId}/guests`, 
+            method: "GET",
+            success: function (response) {
+                $("#viewGuestsTitle").text(`Guests for Event: ${response.eventTitle}`);
+                
+                $("#count-accepted").text(response.accepted ? response.accepted.length : 0);
+                $("#count-pending").text(response.pending ? response.pending.length : 0);
+                $("#count-declined").text(response.declined ? response.declined.length : 0);
+                $("#count-cancelled").text(response.cancelled ? response.cancelled.length : 0);
 
+                // --- Accepted Guests ---
+                if (response.accepted && response.accepted.length > 0) {
+                    response.accepted.forEach(guest => {
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td> 
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-success">Accepted</span></td>
+                            </tr>`;
+                        $("#acceptedGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#acceptedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No accepted guests yet.</td></tr>');
+                }
+
+                // --- Pending Invitations ---
+                if (response.pending && response.pending.length > 0) {
+                    response.pending.forEach(invite => {
+                        const row = `
+                            <tr>
+                                <td>${invite.full_name}</td>
+                                <td>${invite.email}</td>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                            </tr>`;
+                        $("#pendingGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#pendingGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No pending invitations.</td></tr>');
+                }
+
+                // --- Declined Guests ---
+                if (response.declined && response.declined.length > 0) {
+                    response.declined.forEach(guest => {
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td>
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-danger">Declined</span></td>
+                            </tr>`;
+                        $("#declinedGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#declinedGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No declined invitations.</td></tr>');
+                }
+
+                // --- Cancelled Guests ---
+                if (response.cancelled && response.cancelled.length > 0) {
+                    response.cancelled.forEach(guest => {
+                        const row = `
+                            <tr>
+                                <td>${guest.full_name}</td>
+                                <td>${guest.email}</td>
+                                <td><span class="badge bg-secondary">Cancelled</span></td>
+                            </tr>`;
+                        $("#cancelledGuestsTable tbody").append(row);
+                    });
+                } else {
+                    $("#cancelledGuestsTable tbody").append('<tr><td colspan="3" class="text-center text-muted">No cancelled attendance.</td></tr>');
+                }
+            },
+            error: function () {
+                $("#viewGuestsTitle").text("Error loading guest list.");
+            }
+        });
+    });
+
+    // Cancel Event Handler
+    $(document).on("click", ".cancel-event-btn", function () {
+        const eventId = $(this).data("id");
+
+        Swal.fire({
+            title: 'Cancel this event?',
+            text: "Guests will be notified. This cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ffbb33',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/client/events/${eventId}/cancel`,
+                    type: "POST",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Cancelled!', 'The event has been cancelled.', 'success');
+                        $('.datatables-basic').DataTable().ajax.reload(); // Reload table
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Something went wrong.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Delete event handler
+    $(document).on("click", ".delete-event-btn", function () {
+        const eventId = $(this).data("id");
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/client/events/${eventId}`,
+                    type: "DELETE",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        Swal.fire('Deleted!', 'Your event has been deleted.', 'success');
+                        $('.datatables-basic').DataTable().ajax.reload();
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to delete event.', 'error');
+                    }
+                });
+            }
+        });
+    });
 
 </script>
 @endsection

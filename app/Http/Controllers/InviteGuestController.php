@@ -53,35 +53,62 @@ class InviteGuestController extends Controller
         ]);
     }
 
-    public function inviteGuest(Request $request)
+    public function inviteGuest(Request $request, $eventId) 
     {
         $request->validate([
-            'event_id' => 'required|exists:events,id',
-            'firstname' => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'firstname' => 'required|string',
+            'lastname' => 'required|string',
         ]);
+        
+        $email = $request->input('email');
+        $event = Event::findOrFail($eventId);
 
-        $event = Event::findOrFail($request->event_id);
+        // Check if user already exists in the system
+        $existingUser = User::where('email', $email)->first();
 
-        // Create pending guest entry
-        $pending = PendingGuest::create([
-            'event_id' => $event->id,
-            'firstname' => $request->firstname,
-            'middlename' => $request->middlename,
-            'lastname' => $request->lastname,
-            'email' => $request->email,
-            'token' => Str::random(40), // <-- Generate secure token
-        ]);
+        if ($existingUser) {
+            // 1. Attach them to the event with 'pending' status if not already attached
+            // We use syncWithoutDetaching to avoid overwriting if they are already there
+            if (!$event->guests->contains($existingUser->id)) {
+                $event->guests()->attach($existingUser->id, ['status' => 'pending']);
+            } else {
+                // If they are already attached, maybe reset status to pending?
+                // Optional: $event->guests()->updateExistingPivot($existingUser->id, ['status' => 'pending']);
+            }
 
+            // 2. Send the RSVP Email (Signed URL)
+            // We need to create a Mailable for this (e.g., ExistingUserRSVP)
+            // For now, let's assume you will create it next.
+             Mail::to($existingUser->email)->send(new \App\Mail\EventRSVP($event, $existingUser));
 
-        // Send Email
-        Mail::to($pending->email)->send(new GuestInvitationMail($pending));
+            return response()->json(['message' => 'Invitation sent to existing user.'], 200);
 
-        return response()->json([
-            'message' => 'Guest invited successfully!'
-        ]);
+        } else {
+            // --- User is NOT registered (Use your teammate's PendingGuest logic) ---
+            
+            // Check for duplicate pending invites
+            $pendingInvite = PendingGuest::where('email', $email)->where('event_id', $eventId)->first();
+            if ($pendingInvite) {
+                 return response()->json(['message' => 'Invitation already pending.'], 409);
+            }
+
+            // Create Pending Guest
+            $token = Str::random(32);
+            $pending = PendingGuest::create([
+                'event_id' => $event->id,
+                'client_id' => Auth::id(),
+                'email' => $email,
+                'firstname' => $request->input('firstname'),
+                'lastname' => $request->input('lastname'),
+                'invite_token' => $token,
+            ]);
+
+            // Send New Guest Email
+            Mail::to($email)->send(new GuestInvitationMail($pending));
+            
+            return response()->json(['message' => 'Invitation sent to new guest.'], 200);
+        }
     }
 
 
@@ -118,5 +145,33 @@ class InviteGuestController extends Controller
 
         return redirect('/')
             ->with('success', 'Invitation accepted! You may now view the event.');
+    }
+
+// EXISTING USER RSVP RESPONSE
+    // This route will be signed (protected) so nobody can fake it
+    public function respond(Request $request, Event $event, User $user, $status)
+    {
+        // 1. Verify Signature is handled by the route middleware usually, 
+        // but strict checking is good practice if you don't use middleware.
+        if (! $request->hasValidSignature()) {
+            abort(403, 'This link has expired or is invalid.');
+        }
+
+        // 2. Validate Status
+        if (!in_array($status, ['accepted', 'declined'])) {
+            abort(400, 'Invalid status.');
+        }
+
+        // 3. Update the Pivot Table
+        $event->guests()->updateExistingPivot($user->id, [
+            'status' => $status
+        ]);
+
+        // 4. Show a Thank You Page
+        // You can create a simple view resources/views/rsvp/thankyou.blade.php
+        return view('rsvp.thankyou', [
+            'event' => $event,
+            'status' => $status
+        ]);
     }
 }
