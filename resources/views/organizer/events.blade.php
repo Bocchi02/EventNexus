@@ -118,6 +118,12 @@
                                 <input class="form-control" type="file" name="cover_image" accept="image/*">
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col mb-4">
+                                <label for="capacity" class="form-label">Guest Capacity</label>
+                                <input type="number" name="capacity" id="capacity" class="form-control" placeholder="Ex: 100" min="1" required>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
@@ -152,6 +158,8 @@
                             <h5 id="event-title" class="fw-bold mb-3"></h5>
                             <p><strong>Client:</strong> <span id="event-client"></span></p>
                             <p><strong>Venue:</strong> <span id="event-venue"></span></p>
+                            <p><strong>Capacity:</strong> <span id="event-capacity"></span></p>
+                            <p><strong>Available Seats:</strong> <span id="event-seats-left" class="fw-bold text-success"></span></p>
                             <p><strong>Start:</strong> <span id="event-start"></span></p>
                             <p><strong>End:</strong> <span id="event-end"></span></p>
                             <p><strong>Status:</strong> <span id="event-status" class="badge bg-label-info"></span></p>
@@ -251,7 +259,6 @@
                             completed: { title: "Completed", class: "bg-label-primary" },
                             cancelled: { title: "Cancelled", class: "bg-label-danger" },
                             upcoming: { title: "Upcoming", class: "bg-label-info" },
-                            ongoing: { title: "Ongoing", class: "bg-label-success"},
                         };
                         const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
                         return `<span class="badge ${s.class}">${s.title}</span>`;
@@ -446,6 +453,30 @@ $(document).on("click", ".view-event-btn", function () {
       $("#event-title").text(event.title);
       $("#event-client").text(event.client?.full_name || "Unknown Client");
       $("#event-venue").text(event.venue);
+      $("#event-capacity").text(event.capacity ? event.capacity + ' Guests' : 'Unlimited');
+      if (event.capacity) {
+            let accepted = event.accepted_count || 0; // Value from Controller
+            let remaining = event.capacity - accepted;
+            
+            // Text formatting
+            let seatsText = `${remaining} seats left`;
+            
+            // Logic: If full, show 'Sold Out' in red. If available, show green.
+            if (remaining <= 0) {
+                $("#event-seats-left")
+                    .removeClass("text-success")
+                    .addClass("text-danger")
+                    .text("Full / Fully Booked");
+            } else {
+                $("#event-seats-left")
+                    .removeClass("text-danger")
+                    .addClass("text-success")
+                    .text(seatsText);
+            }
+        } else {
+            $("#event-seats-left").text("Unlimited");
+        }
+        
       $("#event-start").text(start);
       $("#event-end").text(end);
       $("#event-description").text(event.description ?? "No description provided.");

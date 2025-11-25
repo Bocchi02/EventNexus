@@ -81,6 +81,8 @@
                             <h5 id="event-title" class="fw-bold mb-3"></h5>
                             <p><strong>Client:</strong> <span id="event-client"></span></p>
                             <p><strong>Venue:</strong> <span id="event-venue"></span></p>
+                            <p><strong>Capacity:</strong> <span id="event-capacity"></span></p>
+                            <p><strong>Available Seats:</strong> <span id="event-seats-left" class="fw-bold text-success"></span></p>
                             <p><strong>Start:</strong> <span id="event-start"></span></p>
                             <p><strong>End:</strong> <span id="event-end"></span></p>
                             <p><strong>Status:</strong> <span id="event-status" class="badge bg-label-info"></span></p>
@@ -478,6 +480,30 @@
         $("#event-title").text(event.title);
         $("#event-client").text(event.client?.full_name || "Unknown Client");
         $("#event-venue").text(event.venue);
+        $("#event-capacity").text(event.capacity ? event.capacity + ' Guests' : 'Unlimited');
+        if (event.capacity) {
+                let accepted = event.accepted_count || 0; // Value from Controller
+                let remaining = event.capacity - accepted;
+                
+                // Text formatting
+                let seatsText = `${remaining} seats left`;
+                
+                // Logic: If full, show 'Sold Out' in red. If available, show green.
+                if (remaining <= 0) {
+                    $("#event-seats-left")
+                        .removeClass("text-success")
+                        .addClass("text-danger")
+                        .text("Full / Fully Booked");
+                } else {
+                    $("#event-seats-left")
+                        .removeClass("text-danger")
+                        .addClass("text-success")
+                        .text(seatsText);
+                }
+            } else {
+                $("#event-seats-left").text("Unlimited");
+            }
+        
         $("#event-start").text(start);
         $("#event-end").text(end);
         $("#event-description").text(event.description ?? "No description provided.");

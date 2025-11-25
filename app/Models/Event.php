@@ -16,6 +16,7 @@ class Event extends Model
         'title',
         'description',
         'venue',
+        'capacity',
         'start_date',
         'end_date',
         'status',
