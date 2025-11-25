@@ -60,7 +60,7 @@
                             <div class="d-flex justify-content-between align-items-center border-end pb-4 pb-sm-0 card-widget-3">
                               <div>
                                 <h4 class="mb-0 text-primary">{{$upcomingEvents}}</h4>
-                                <p class="mb-0 text-primary">Upcomming Events</p>
+                                <p class="mb-0 text-primary">Upcoming Events</p>
                               </div>
                               <div class="avatar me-sm-6">
                                 <span class="avatar-initial rounded bg-label-primary text-heading">

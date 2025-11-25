@@ -133,6 +133,89 @@
                 </div>
             </div>
             </div>
+
+            <!-- Modal to edit event record huehue -->
+            <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <form id="editEventForm" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" id="edit_event_id" name="id">
+                        
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Event</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_title" class="form-label">Event Title</label>
+                                    <input type="text" id="edit_title" name="title" class="form-control" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col mb-6">
+                                    <label for="edit_client_id" class="form-label">Client</label>
+                                    <select id="edit_client_id" name="client_id" class="form-select" required>
+                                        <option value="" disabled>-- Select Client --</option>
+                                        @foreach($clients as $client)
+                                            <option value="{{ $client->id }}">{{ ucfirst($client->full_name) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_description" class="form-label">Description</label>
+                                    <textarea id="edit_description" name="description" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_venue" class="form-label">Venue</label>
+                                    <input type="text" id="edit_venue" name="venue" class="form-control" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_start_date" class="form-label">Start Date</label>
+                                    <input type="datetime-local" id="edit_start_date" name="start_date" class="form-control" required>
+                                </div>
+                                <div class="col mb-4">
+                                    <label for="edit_end_date" class="form-label">End Date</label>
+                                    <input type="datetime-local" id="edit_end_date" name="end_date" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_capacity" class="form-label">Guest Capacity</label>
+                                    <input type="number" id="edit_capacity" name="capacity" class="form-control" min="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col mb-4">
+                                    <label for="edit_cover_image" class="form-label">Change Cover Image (Optional)</label>
+                                    <input type="file" id="edit_cover_image" name="cover_image" class="form-control" accept="image/*">
+                                    <div class="form-text">Leave empty to keep the current image.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
             <!-- Modal to view record -->
               <!-- Modal -->
             <!-- Modal -->
@@ -272,7 +355,7 @@
                     render: function (data, type, full) {
                         // Check if event is already cancelled or completed
                         const isCancelled = full.status === "cancelled" || full.status === "completed";
-                        const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-danger";
+                        const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-warning";
                         const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
                         const isDisabled = full.status === "cancelled" || full.status === "completed";
 
@@ -284,19 +367,19 @@
                             <ul class="dropdown-menu dropdown-menu-end m-0">
                             <li>
                                 <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
-                                View
+                                <i class="bx bx-show me-1"></i> View
                                 </a>
                             </li>
                             <li>
                                 <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
-                                ${cancelText}
+                                <i class="bx bx-block me-1"></i> ${cancelText}
                                 </a>
                             </li>
                             <div class="dropdown-divider"></div>
                             <a href="javascript:void(0);" 
                               class="dropdown-item text-danger delete-event-btn ${isDisabled ? "disabled text-muted" : ""}" 
                               data-id="${full.id}">
-                                ${isDisabled ? "Not Allowed" : "Delete"}
+                                <i class="bx bx-trash me-1"></i> ${isDisabled ? "Not Allowed" : "Delete"}
                             </a>
                             </ul>
                         </div>
@@ -565,6 +648,73 @@ $(document).on("click", ".cancel-event-btn", function () {
       });
     }
   });
+});
+
+
+$(document).on('click', '.editEventBtn', function() {
+    var eventId = $(this).data('id');
+    
+    // Reset form first
+    $('#editEventForm')[0].reset();
+    
+    // Fetch Event Data
+    $.ajax({
+        url: '/organizer/events/' + eventId, // Uses your existing 'show' method
+        type: 'GET',
+        success: function(data) {
+            // Populate fields
+            $('#edit_event_id').val(data.id);
+            $('#edit_title').val(data.title);
+            $('#edit_client_id').val(data.client_id);
+            $('#edit_description').val(data.description);
+            $('#edit_venue').val(data.venue);
+            $('#edit_capacity').val(data.capacity);
+            
+            // Format dates for datetime-local input (YYYY-MM-DDTHH:MM)
+            if(data.start_date) {
+                $('#edit_start_date').val(data.start_date.substring(0, 16));
+            }
+            if(data.end_date) {
+                $('#edit_end_date').val(data.end_date.substring(0, 16));
+            }
+        },
+        error: function() {
+            Swal.fire('Error', 'Could not fetch event details', 'error');
+        }
+    });
+});
+
+// 2. HANDLE UPDATE SUBMISSION
+$('#editEventForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    var eventId = $('#edit_event_id').val();
+    var formData = new FormData(this);
+    
+    $.ajax({
+        url: '/organizer/events/' + eventId + '/update', // Ensure this route exists!
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            $('#editEventModal').modal('hide');
+            Swal.fire('Success', response.message || 'Event updated successfully!', 'success');
+            
+            // Reload DataTable
+            if (typeof dt_basic !== "undefined") {
+                dt_basic.ajax.reload(null, false);
+            }
+        },
+        error: function(xhr) {
+            var errors = xhr.responseJSON?.errors;
+            var msg = 'Failed to update event.';
+            if(errors) {
+                msg = Object.values(errors).flat().join('\n');
+            }
+            Swal.fire('Error', msg, 'error');
+        }
+    });
 });
 
 // Delete Event
