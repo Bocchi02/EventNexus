@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id'); // guest's user id
-            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'declined', 'cancelled'])->default('pending');
             $table->string('role')->default('Guest');
             $table->timestamps();
 

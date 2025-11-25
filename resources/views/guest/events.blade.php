@@ -121,65 +121,103 @@
                     { data: "venue" },
                     { data: "start_date" },
                     { data: "end_date" },
-                    { data: "status" },
-                    { data: null } // Details Action
-                ],  
-                columnDefs: [
-                    {
-                        targets: 0,
-                        className: "control",
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        render: function () { return ""; },
-                    },
-                    {
-                        // Title column (Removed client info)
-                        targets: 1,
-                        responsivePriority: 2,
-                        render: function (data, type, full) {
-                            return `<span class="fw-semibold">${full.title}</span>`;
-                        },
-                    },
-                    {
-                        targets: 3, // Start Date
-                        render: function (data) {
-                            if (!data) return "";
-                            return new Date(data).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
-                        },
-                    },
-                    {
-                        targets: 4, // End Date
-                        render: function (data) {
-                            if (!data) return "";
-                            return new Date(data).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
-                        },
-                    },
-                    {
-                        targets: 5, // Status
-                        render: function (data, type, full) {
-                            const statusMap = {
-                                completed: { title: "Completed", class: "bg-label-primary" },
-                                cancelled: { title: "Cancelled", class: "bg-label-danger" },
-                                upcoming: { title: "Upcoming", class: "bg-label-info" },
-                            };
-                            const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
-                            return `<span class="badge ${s.class}">${s.title}</span>`;
-                        },
-                    },
-                    {
-                        targets: -1,
-                        title: "Details", 
-                        orderable: false,
-                        searchable: false,
-                        render: function (data, type, full) {
-                            // 🚀 ONLY RENDER THE VIEW BUTTON 
-                            return `<a href="javascript:void(0);" class="btn btn-icon btn-label-secondary view-event-btn" data-id="${full.id}">
-                                <i class="bx bx-show bx-sm"></i>
-                            </a>`;
-                        },
-                    }
+                    { data: "invitation_status" },
+                    { data: null }
                 ],
+                columnDefs: [
+                {
+                    targets: 0,
+                    className: "control",
+                    orderable: false,
+                    searchable: false,
+                    responsivePriority: 1,
+                    render: function () { return ""; },
+                },
+                {
+                    // Title column
+                    targets: 1,
+                    responsivePriority: 2,
+                    render: function (data, type, full) {
+                        return `<span class="fw-semibold">${full.title}</span>`;
+                    },
+                },
+                {
+                    targets: 3, // Start Date
+                    render: function (data) {
+                        if (!data) return "";
+                        return new Date(data).toLocaleString("en-US", { 
+                            year: "numeric", month: "short", day: "numeric", 
+                            hour: "2-digit", minute: "2-digit", hour12: true 
+                        });
+                    },
+                },
+                {
+                    targets: 4, // End Date
+                    render: function (data) {
+                        if (!data) return "";
+                        return new Date(data).toLocaleString("en-US", { 
+                            year: "numeric", month: "short", day: "numeric", 
+                            hour: "2-digit", minute: "2-digit", hour12: true 
+                        });
+                    },
+                },
+                {
+                    targets: 5, // Invitation Status
+                    render: function (data, type, full) {
+                        const statusMap = {
+                            pending: { title: "Pending", class: "bg-label-warning" },
+                            accepted: { title: "Accepted", class: "bg-label-success" },
+                            declined: { title: "Declined", class: "bg-label-danger" },
+                            cancelled: { title: "Cancelled", class: "bg-label-secondary" },
+                        };
+                        const s = statusMap[full.invitation_status] || { title: full.invitation_status, class: "bg-label-secondary" };
+                        return `<span class="badge ${s.class}">${s.title}</span>`;
+                    },
+                },
+                {
+                targets: -1,
+                title: "Actions", 
+                orderable: false,
+                searchable: false,
+                render: function (data, type, full) {
+                    let actions = `<a href="javascript:void(0);" class="btn btn-sm btn-icon btn-label-secondary view-event-btn me-1" data-id="${full.id}" title="View Details">
+                        <i class="bx bx-show"></i>
+                    </a>`;
+                    
+                    // Show Accept/Decline buttons only if status is pending
+                    if (full.invitation_status === 'pending') {
+                        actions += `
+                            <a href="javascript:void(0);" class="btn btn-sm btn-icon btn-success accept-invite-btn me-1" data-id="${full.id}" title="Accept Invitation">
+                                <i class="bx bx-check"></i>
+                            </a>
+                            <a href="javascript:void(0);" class="btn btn-sm btn-icon btn-danger decline-invite-btn" data-id="${full.id}" title="Decline Invitation">
+                                <i class="bx bx-x"></i>
+                            </a>
+                        `;
+                    }
+                    
+                    // Show Cancel button if status is accepted (they can cancel their acceptance)
+                    if (full.invitation_status === 'accepted') {
+                        actions += `
+                            <a href="javascript:void(0);" class="btn btn-sm btn-icon btn-warning cancel-invite-btn" data-id="${full.id}" title="Cancel Attendance">
+                                <i class="bx bx-x-circle"></i>
+                            </a>
+                        `;
+                    }
+                    
+                    // Show Re-accept button if status is declined (they can change their mind)
+                    if (full.invitation_status === 'declined') {
+                        actions += `
+                            <a href="javascript:void(0);" class="btn btn-sm btn-icon btn-success accept-invite-btn" data-id="${full.id}" title="Accept Invitation">
+                                <i class="bx bx-check"></i>
+                            </a>
+                        `;
+                    }
+                    
+                    return actions;
+                },
+            }
+            ],
                 order: [[2, "desc"]],
                 // 🚀 Removed all buttons (B) from the DOM structure
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center">><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
@@ -242,5 +280,129 @@
             },
         });
     });
+
+    // Accept Invitation Handler
+    $(document).on("click", ".accept-invite-btn", function () {
+        const eventId = $(this).data("id");
+        
+        Swal.fire({
+            title: 'Accept Invitation?',
+            text: "You will be registered for this event.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, accept it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/guest/events/${eventId}/respond`,
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        status: "accepted"
+                    },
+                    success: function (response) {
+                        Swal.fire({
+                            title: 'Accepted!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        
+                        // Reload the DataTable
+                        $('.datatables-basic').DataTable().ajax.reload();
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Error!', xhr.responseJSON?.message || 'Unable to accept invitation.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Decline Invitation Handler
+    $(document).on("click", ".decline-invite-btn", function () {
+        const eventId = $(this).data("id");
+        
+        Swal.fire({
+            title: 'Decline Invitation?',
+            text: "You will not be attending this event.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, decline it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/guest/events/${eventId}/respond`,
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        status: "declined"
+                    },
+                    success: function (response) {
+                        Swal.fire({
+                            title: 'Declined',
+                            text: response.message,
+                            icon: 'info',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        
+                        // Reload the DataTable
+                        $('.datatables-basic').DataTable().ajax.reload();
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Error!', xhr.responseJSON?.message || 'Unable to decline invitation.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Cancel Attendance Handler (for guests who already accepted)
+    $(document).on("click", ".cancel-invite-btn", function () {
+        const eventId = $(this).data("id");
+        
+        Swal.fire({
+            title: 'Cancel Attendance?',
+            text: "You will no longer be attending this event.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff9f43',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel attendance'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/guest/events/${eventId}/respond`,
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        status: "cancelled"
+                    },
+                    success: function (response) {
+                        Swal.fire({
+                            title: 'Cancelled',
+                            text: response.message,
+                            icon: 'info',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        
+                        // Reload the DataTable
+                        $('.datatables-basic').DataTable().ajax.reload();
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Error!', xhr.responseJSON?.message || 'Unable to cancel attendance.', 'error');
+                    }
+                });
+            }
+        });
+    });
+
 </script>
 @endsection
