@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'My Events | EventNexus')
 @section('styles')
 <style>    /* Event Image Container */
 .event-image-container {
@@ -250,6 +251,7 @@
                             completed: { title: "Completed", class: "bg-label-primary" },
                             cancelled: { title: "Cancelled", class: "bg-label-danger" },
                             upcoming: { title: "Upcoming", class: "bg-label-info" },
+                            ongoing: { title: "Ongoing", class: "bg-label-success"},
                         };
                         const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
                         return `<span class="badge ${s.class}">${s.title}</span>`;
@@ -261,12 +263,11 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, full) {
-                        const deleteUrl = `/organizer/events/${full.id}`;
-
-                        // 🧠 Check if event is already cancelled or completed
+                        // Check if event is already cancelled or completed
                         const isCancelled = full.status === "cancelled" || full.status === "completed";
                         const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-danger";
                         const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
+                        const isDisabled = full.status === "cancelled" || full.status === "completed";
 
                         return `
                         <div class="d-inline-block">
@@ -285,9 +286,11 @@
                                 </a>
                             </li>
                             <div class="dropdown-divider"></div>
-                            <li>
-                                <a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a>
-                            </li>
+                            <a href="javascript:void(0);" 
+                              class="dropdown-item text-danger delete-event-btn ${isDisabled ? "disabled text-muted" : ""}" 
+                              data-id="${full.id}">
+                                ${isDisabled ? "Not Allowed" : "Delete"}
+                            </a>
                             </ul>
                         </div>
                         <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
@@ -473,14 +476,14 @@ $(document).on("click", ".view-event-btn", function () {
   });
 });
 
-// ✅ Global CSRF setup
+// Global CSRF setup
 $.ajaxSetup({
   headers: {
     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
   }
 });
 
-// ✅ Cancel Event Handler
+// Cancel Event Handler
 $(document).on("click", ".cancel-event-btn", function () {
   const eventId = $(this).data("id");
   const status = $(this).data("status");
@@ -532,6 +535,74 @@ $(document).on("click", ".cancel-event-btn", function () {
     }
   });
 });
+
+// Delete Event
+$(document).on("click", ".delete-event-btn", function () {
+
+    let id = $(this).data("id");
+
+    // Disabled action (completed/cancelled)
+    if ($(this).hasClass("disabled")) {
+        Swal.fire({
+            icon: "info",
+            title: "Action Not Allowed",
+            text: "This event cannot be deleted.",
+            confirmButtonColor: "#3085d6"
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This event will be permanently deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it",
+        cancelButtonText: "No, keep it",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d"
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            $.ajax({
+                url: `/organizer/events/${id}/delete`,
+                type: "DELETE",
+                headers: {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+                },
+                success: function (response) {
+
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: response.message,
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // reload only table content (no flash)
+                    if (typeof dt_basic !== "undefined") {
+                        dt_basic.ajax.reload(null, false);
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to delete event.",
+                        icon: "error"
+                    });
+                }
+            });
+
+        }
+    });
+
+});
+
+
 
 
 

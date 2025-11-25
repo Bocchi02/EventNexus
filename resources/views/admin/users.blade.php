@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'User Management | EventNexus')
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">

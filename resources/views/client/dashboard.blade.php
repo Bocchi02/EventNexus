@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Client Dashboard | EventNexus')
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -163,8 +164,16 @@
             @if(isset($nextEvent) && $nextEvent)
                 <div class="card h-100 overflow-hidden">
                     <div class="row g-0 h-100">
-                        <div class="col-md-5 bg-label-primary d-flex align-items-center justify-content-center" 
-                            style="min-height: 250px; background-image: url('{{ $nextEvent->cover_image ? asset($nextEvent->cover_image) : 'https://placehold.co/600x400/696cff/ffffff?text=No+Image' }}'); background-size: cover; background-position: center;">
+                        @php
+                            $imgSrc = $nextEvent->cover_image
+                                ? asset($nextEvent->cover_image)
+                                : 'https://placehold.co/600x400/696cff/ffffff?text=No+Image';
+                        @endphp
+                        <div class="col-md-5 bg-label-primary d-flex align-items-center justify-content-center">
+                            <img src="{{ $imgSrc }}" 
+                                alt="Event Cover"
+                                class="img-fluid rounded"
+                                style="max-height: 250px; object-fit: cover; width: 100%;">
                         </div>
 
                         <div class="col-md-7">
@@ -216,14 +225,20 @@
                                         $capacity = $nextEvent->capacity ?? 100;
                                         $acceptedCount = $nextEvent->accepted_count ?? 0;
                                         $percentage = $capacity > 0 ? ($acceptedCount / $capacity) * 100 : 0;
+                                        $progressStyle = "width: {$percentage}%;"; // final CSS string
                                     @endphp
+
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="fw-bold text-heading">Capacity</small>
                                         <small class="text-muted">{{ $acceptedCount }} / {{ $capacity }}</small>
                                     </div>
                                     <div class="progress" style="height: 6px;">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $percentage }}%"></div>
+                                        <div class="progress-bar bg-success"
+                                            role="progressbar"
+                                            @style(['width: '.$percentage.'%'])>
+                                        </div>
                                     </div>
+
                                 </div>
 
                                 <button type="button" class="btn btn-outline-primary w-100 view-event-btn" data-id="{{ $nextEvent->id }}">

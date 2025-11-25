@@ -55,7 +55,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
 
-                            <a class="dropdown-item" href="{{ route('logout') }}"
+                            <a class="dropdown-item" href="{{ route('login') }}"
                               onclick="event.preventDefault();
                                         this.closest('form').submit();">
                                 <i class="bx bx-power-off bx-md me-3"></i><span>Log Out</span>

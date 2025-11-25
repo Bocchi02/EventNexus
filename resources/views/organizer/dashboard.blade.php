@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Organizer Dashboard | EventNexus')
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
