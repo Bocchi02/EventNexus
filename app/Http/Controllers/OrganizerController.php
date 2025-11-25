@@ -31,6 +31,22 @@ class OrganizerController extends Controller
                                 ->where('status', 'cancelled')
                                 ->count();
 
+        // Upcoming Schedule
+        $upcomingSchedule = Event::where('organizer_id', $organizerId)
+                                ->where('start_date', '>=', now())
+                                ->orderBy('start_date', 'asc')
+                                ->take(5)
+                                ->get();
+
+        // 2. Fetch Recent Clients (Unique clients from your events)
+        $recentClients = Event::where('organizer_id', $organizerId)
+                            ->with('client')
+                            ->latest()
+                            ->get()
+                            ->pluck('client') // Get the user object
+                            ->unique('id')    // Remove duplicates
+                            ->take(5);
+
         // --- Growth Calculation ---
 
         // Events created this week
@@ -54,7 +70,9 @@ class OrganizerController extends Controller
             'upcomingEvents', 
             'completedEvents', 
             'cancelledEvents',
-            'growth'
+            'growth',
+            'upcomingSchedule',
+            'recentClients'
         ));
     }
 
