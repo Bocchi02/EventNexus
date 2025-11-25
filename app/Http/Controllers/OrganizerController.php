@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
 
+
 class OrganizerController extends Controller
 {
     /**
@@ -273,15 +274,16 @@ class OrganizerController extends Controller
     public function deleteEvent($id)
     {
         $event = Event::where('id', $id)
-                     ->where('organizer_id', Auth::id())
-                     ->firstOrFail();
+                    ->where('organizer_id', Auth::id())
+                    ->firstOrFail();
 
-        // Delete cover image if exists
+
+        // Delete cover image
         if ($event->cover_image && file_exists(public_path($event->cover_image))) {
             unlink(public_path($event->cover_image));
         }
 
-        // Delete gallery images if exist
+        // Delete gallery images
         if ($event->gallery_images) {
             foreach ($event->gallery_images as $image) {
                 if (file_exists(public_path($image))) {
@@ -293,7 +295,6 @@ class OrganizerController extends Controller
         $event->delete();
 
         return response()->json([
-            'success' => true,
             'message' => 'Event deleted successfully.'
         ]);
     }
