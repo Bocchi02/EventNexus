@@ -78,17 +78,33 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
          // Send invitation
        // Route::post('/client/events/{event}/invite', [InviteGuestController::class, 'sendInvite'])->name('client.invite.guest');
 
+        // View Guests
+        Route::get('/client/events/{eventId}/guests', [ClientController::class, 'getGuestsList']);
+
+        // Cancel Event
+        Route::post('/client/events/{eventId}/cancel', [ClientController::class, 'cancel']);
+
+        // Delete Event
+        Route::delete('/client/events/{eventId}', [ClientController::class, 'destroy']);
+
 
     });
 
     // Public — guest accepts invitation
 Route::get('/invitation/accept/{token}', [InviteGuestController::class, 'acceptInvite'])->name('invitation.accept');
 
+// InviteGuest Route (idk lmao)
+Route::get('/rsvp/{event}/{user}/{status}', [InviteGuestController::class, 'respond'])
+    ->name('rsvp.respond')
+    ->middleware('signed');
+
 //Guest Routes
 Route::middleware(['auth'])->name('guest.')->group(function () {
     Route::get('/guest/dashboard', [GuestController::class, 'dashboard'])->name('dashboard');
     Route::get('/guest/events', [GuestController::class, 'events'])->name('events');
-    Route::get('/getEvents', [GuestController::class, 'getEventsAjax'])->name('getEvents');
+    Route::get('/guest/getEvents', [GuestController::class, 'getEventsAjax'])->name('guest.getEvents');
+    Route::get('/guest/events/{id}', [GuestController::class, 'show'])->name('show');
+    Route::post('/guest/events/{eventId}/respond', [GuestController::class, 'respondToInvitation'])->name('respond');
 });
 
 require __DIR__.'/auth.php';

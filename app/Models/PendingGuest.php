@@ -15,7 +15,7 @@ class PendingGuest extends Model
         'middlename',
         'lastname',
         'email',
-        'status', //pending, accepted, expired
+        'status',
         'token'
     ];
 

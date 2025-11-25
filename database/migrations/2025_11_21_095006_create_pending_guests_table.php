@@ -11,14 +11,13 @@ return new class extends Migration
         Schema::create('pending_guests', function (Blueprint $table) {
             $table->id();
 
-            // The fields that caused the error:
             $table->string('firstname'); 
             $table->string('middlename')->nullable();
             $table->string('lastname'); 
 
-            $table->string('email')->unique(); // Unique email for verification
-            $table->string('token')->unique(); // Token for the guest to register/confirm attendance
-            $table->foreignId('event_id')->constrained()->onDelete('cascade'); // Which event they are invited to
+            $table->string('email')->unique();
+            $table->string('token')->unique();
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
 
             $table->timestamps();
         });
