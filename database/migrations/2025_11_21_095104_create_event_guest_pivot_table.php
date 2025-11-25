@@ -12,7 +12,7 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             
-            $table->string('status')->default('Confirmed')->after('user_id'); 
+            $table->string('status')->default('Confirmed');
             
             $table->primary(['event_id', 'user_id']);
             $table->timestamps();
