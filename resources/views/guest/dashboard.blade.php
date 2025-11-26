@@ -36,7 +36,7 @@
                         <div class="row g-0">
                             <div class="col-md-3 d-none d-md-block bg-label-warning d-flex align-items-center justify-content-center">
                                 <img src="{{ $invite->cover_image ? asset($invite->cover_image) : 'https://placehold.co/200x200/ffab00/ffffff?text=Invite' }}" 
-                                    class="img-fluid rounded-start h-100 object-fit-cover" style="max-height: 160px;" alt="...">
+                                     class="img-fluid rounded-start h-100 object-fit-cover" style="max-height: 160px;" alt="...">
                             </div>
                             
                             <div class="col-md-9">
@@ -69,12 +69,12 @@
         </div>
         @endif
         
-        {{-- 2. MY TICKETS HEADER --}}
+        {{-- 3. MY TICKETS HEADER --}}
         <div class="col-12 mb-4 mt-2">
             <h5 class="text-muted fw-light">My Tickets</h5>
         </div>
 
-        {{-- 3. TICKETS GRID --}}
+        {{-- 4. TICKETS GRID --}}
         @forelse($myTickets as $event)
         <div class="col-md-6 col-lg-4 mb-4">
             <div class="card h-100">
@@ -111,12 +111,6 @@
                                 data-id="{{ $event->id }}">
                             View Ticket & Details
                         </button>
-                        
-                        {{-- 
-                        <a href="#" class="btn btn-primary btn-sm">
-                            <i class="bx bx-download me-1"></i> Download PDF
-                        </a> 
-                        --}}
                     </div>
                 </div>
             </div>
@@ -138,7 +132,7 @@
     </div>
 </div>
 
-{{-- Add your Modal and Script here if you want the "View Ticket" button to work immediately --}}
+{{-- MODAL 1: VIEW TICKET (For Accepted Events) --}}
 <div class="modal fade" id="viewTicketModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -149,16 +143,10 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-5 text-center border-end">
-                        <div class="mb-3 rounded overflow-hidden bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <div class="mb-3 rounded overflow-hidden bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
                             <img id="modal-event-image" src="" alt="Event Cover" class="w-100 h-100 object-fit-cover">
                         </div>
-                        
-                        <div class="p-3 bg-lighter rounded border border-dashed">
-                            <i class='bx bx-qr-scan display-4 text-muted'></i>
-                            <p class="mb-0 small text-muted mt-1">Scan at venue</p>
-                        </div>
                     </div>
-
                     <div class="col-md-7">
                         <div class="ps-md-3 mt-3 mt-md-0">
                             <span id="modal-event-status" class="badge bg-label-success mb-2">Confirmed</span>
@@ -179,9 +167,7 @@
                                     <i class='bx bx-map me-2 text-danger'></i> <span id="modal-event-venue">...</span>
                                 </p>
                             </div>
-
                             <hr>
-
                             <div>
                                 <label class="fw-bold text-uppercase small text-muted">Description</label>
                                 <p id="modal-event-desc" class="text-muted small">...</p>
@@ -191,15 +177,13 @@
                 </div>
             </div>
             <div class="modal-footer bg-lighter">
-                <button type="button" class="btn btn-outline-secondary">
-                    <i class='bx bx-download me-1'></i> Download PDF
-                </button>
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
+{{-- MODAL 2: PENDING INVITATION RESPONSE --}}
 <div class="modal fade" id="respondModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
@@ -235,6 +219,19 @@
                     </div>
                 </div>
 
+                <div class="bg-white p-3 rounded border mb-4 text-start mx-auto" style="max-width: 300px;">
+                    <label class="form-label fw-bold small text-uppercase text-muted">Confirm Seats</label>
+                    <div class="d-flex align-items-center">
+                        <input type="number" id="invite-modal-seats" class="form-control form-control-lg me-2 text-center fw-bold" value="1" min="1">
+                        <span class="text-muted small">
+                            / <span id="invite-modal-max-seats">1</span> Allocated
+                        </span>
+                    </div>
+                    <div class="form-text small mt-1 text-center">
+                        You can reduce seats, but not exceed your allocation.
+                    </div>
+                </div>
+
                 <p class="mb-3">Will you be joining us?</p>
                 <div class="d-flex gap-2 justify-content-center">
                     <button class="btn btn-label-danger btn-lg w-45 respond-btn" id="btn-decline" data-status="declined">
@@ -248,23 +245,77 @@
         </div>
     </div>
 </div>
+@endsection
 
+@section('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        // 1. VIEW TICKET (Your existing ticket logic)
+    $(document).ready(function() {
+        console.log("✅ Dashboard Script Initialized");
+
+        // Define Base URL for Images
+        const BASE_URL = "{{ asset('/') }}";
+
+        // 1. OPEN INVITATION MODAL
+        $(document).on('click', '.view-invite-btn', function(e) {
+            e.preventDefault(); 
+            
+            const eventId = $(this).data('id');
+            console.log("📩 Open Invitation Clicked for Event ID:", eventId);
+
+            if (!eventId) return;
+
+            // Reset Modal
+            $('#invite-modal-title').text('Loading...');
+            $('#invite-modal-host').text('...');
+            $('#invite-modal-date').text('...');
+            $('#invite-modal-venue').text('...');
+            $('#invite-modal-seats').val(1); 
+
+            // Pass ID to buttons
+            $('#btn-accept').attr('data-id', eventId);
+            $('#btn-decline').attr('data-id', eventId);
+
+            // Show Modal
+            $('#respondModal').modal('show');
+
+            // Fetch Data
+            $.ajax({
+                url: '/guest/events/' + eventId,
+                type: 'GET',
+                success: function(event) {
+                    const dateStr = new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const timeStr = new Date(event.start_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                    $('#invite-modal-title').text(event.title);
+                    $('#invite-modal-venue').text(event.venue || 'TBD');
+                    $('#invite-modal-date').text(`${dateStr} @ ${timeStr}`);
+                    
+                    if(event.organizer) {
+                        $('#invite-modal-host').text(event.organizer.full_name);
+                    }
+
+                    // Handle Allocated Seats
+                    const allocated = event.my_allocated_seats || 1;
+                    $('#invite-modal-max-seats').text(allocated);
+                    $('#invite-modal-seats').val(allocated).attr('max', allocated);
+                },
+                error: function() {
+                    $('#invite-modal-title').text('Error loading details');
+                }
+            });
+        });
+
+        // 2. VIEW TICKET HANDLER
         $(document).on('click', '.view-ticket-btn', function() {
             const eventId = $(this).data('id');
-            $('#modal-event-title').text('Loading...');
-            $('#modal-event-host').text('...');
-            $('#modal-event-venue').text('...');
-            $('#modal-event-date').text('');
-            $('#modal-event-time').text('');
-            $('#modal-event-desc').text('Fetching details...');
-            $('#modal-event-image').attr('src', 'https://placehold.co/600x400/e0e0e0/ffffff?text=Loading');
+            console.log("🎫 View Ticket Clicked:", eventId);
             
             $('#viewTicketModal').modal('show');
             
+            // Reset Modal
+            $('#modal-event-title').text('Loading...');
+            $('#modal-event-image').attr('src', 'https://placehold.co/600x400/e0e0e0/ffffff?text=Loading');
+
             $.ajax({
                 url: '/guest/events/' + eventId,
                 type: 'GET',
@@ -283,67 +334,26 @@
                         $('#modal-event-host').text(response.organizer.full_name);
                     }
 
+                    // FIX: Use BASE_URL + cover_image
                     if(response.cover_image) {
-                        $('#modal-event-image').attr('src', '/' + response.cover_image);
+                        // If cover_image already starts with "uploads/", we just append it to BASE_URL
+                        $('#modal-event-image').attr('src', BASE_URL + response.cover_image);
                     } else {
                         $('#modal-event-image').attr('src', 'https://placehold.co/600x400/696cff/ffffff?text=Event');
                     }
-                },
-                error: function() {
-                    $('#modal-event-title').text('Error');
-                    $('#modal-event-desc').text('Could not load event details.');
                 }
             });
         });
 
-        // 2. OPEN INVITATION MODAL (NEW)
-        $(document).on('click', '.view-invite-btn', function() {
-            const eventId = $(this).data('id');
-            
-            // Reset & Show Modal
-            $('#invite-modal-title').text('Loading...');
-            $('#invite-modal-host').text('...');
-            $('#invite-modal-date').text('...');
-            $('#invite-modal-venue').text('...');
-            
-            // IMPORTANT: Pass the ID to the buttons inside the modal
-            $('#btn-accept').attr('data-id', eventId);
-            $('#btn-decline').attr('data-id', eventId);
-            
-            $('#respondModal').modal('show');
-
-            // Fetch Data
-            $.ajax({
-                url: '/guest/events/' + eventId,
-                type: 'GET',
-                success: function(event) {
-                    const dateStr = new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    const timeStr = new Date(event.start_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-                    $('#invite-modal-title').text(event.title);
-                    $('#invite-modal-venue').text(event.venue || 'TBD');
-                    $('#invite-modal-date').text(`${dateStr} @ ${timeStr}`);
-                    
-                    if(event.organizer) {
-                        $('#invite-modal-host').text(event.organizer.full_name);
-                    }
-                },
-                error: function() {
-                    $('#invite-modal-title').text('Error loading details');
-                }
-            });
-        });
-
-        // 3. RESPOND HANDLER (Accept/Decline)
-        // This works for the buttons INSIDE the modal because we added 'respond-btn' class to them
+        // 3. RESPOND HANDLER
         $(document).on('click', '.respond-btn', function() {
             const btn = $(this);
-            const eventId = btn.attr('data-id'); // Get ID we set earlier
-            const status = btn.data('status');   // 'accepted' or 'declined'
+            const eventId = btn.attr('data-id');
+            const status = btn.data('status');
+            const seats = $('#invite-modal-seats').val();
 
-            if(!eventId) return; // Safety check
+            if(!eventId) return;
 
-            // Disable buttons
             $('.respond-btn').prop('disabled', true);
 
             $.ajax({
@@ -351,16 +361,17 @@
                 type: 'POST',
                 data: {
                     status: status,
+                    seats_confirmed: seats,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    $('#respondModal').modal('hide'); // Close modal
+                    $('#respondModal').modal('hide');
                     
                     if(status === 'accepted') {
                         Swal.fire({
                             icon: 'success',
                             title: 'Invitation Accepted!',
-                            text: 'See you there!',
+                            text: 'Event added to your tickets.',
                             timer: 1500,
                             showConfirmButton: false
                         }).then(() => {
