@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html
   lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+  class="light-style layout-wide customizer-hide"
+  dir="ltr"
+  data-theme="theme-default"
   data-assets-path="{{ asset('assets/') . '/' }}"
+  data-style="light"
 >
   <head>
     <meta charset="utf-8">
@@ -85,6 +89,33 @@
 
       <!-- Main JS -->
       <script src="{{ asset('assets/js/main.js')}}"></script>
+
+      <!-- User Avatar -->
+       <script>
+              // Random index (0–6)
+              var stateNum = Math.floor(Math.random() * 7);
+
+              // Available color classes
+              var states = [
+                  "bg-success",
+                  "bg-danger",
+                  "bg-warning",
+                  "bg-info",
+                  "bg-dark",
+                  "bg-primary",
+                  "bg-secondary",
+              ];
+
+              // Select multiple avatar IDs
+              var avatars = document.querySelectorAll('#userAvatar, #userAvatar2');
+
+              // Loop through and apply color
+              avatars.forEach(function(avatar) {
+                  avatar.classList.add(states[stateNum]);
+              });
+          </script>
+
+
       <!-- Page JS -->
     @yield('scripts')
   </body>

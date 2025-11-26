@@ -17,7 +17,9 @@
                     href="javascript:void(0);"
                     data-bs-toggle="dropdown">
                     <div class="avatar avatar-online">
-                      <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
+                      <span id="userAvatar" class="avatar-initial rounded-circle">
+                        {{ strtoupper(substr(Auth::user()->firstname, 0, 1) . substr(Auth::user()->lastname, 0, 1)) }}
+                      </span>
                     </div>
                   </a>
                   <ul class="dropdown-menu dropdown-menu-end">
@@ -25,9 +27,11 @@
                       <a class="dropdown-item" href="#"> <!-- redirect to account settings -->
                         <div class="d-flex">
                           <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="../../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle" />
-                            </div>
+                              <div class="avatar avatar-online">
+                                  <span id="userAvatar2" class="avatar-initial rounded-circle">
+                                      {{ strtoupper(substr(Auth::user()->firstname, 0, 1) . substr(Auth::user()->lastname, 0, 1)) }}
+                                  </span>
+                              </div>
                           </div>
                           <div class="flex-grow-1">
                             <h6 class="mb-0">{{ Auth::user()->full_name }}</h6>
@@ -40,21 +44,8 @@
                       <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                      <a class="dropdown-item" href="pages-profile-user.html">
-                        <i class="bx bx-user bx-md me-3"></i><span>My Profile</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="pages-account-settings-account.html">
-                        <i class="bx bx-cog bx-md me-3"></i><span>Settings</span>
-                      </a>
-                    </li>
-                      <div class="dropdown-divider my-1"></div>
-                    </li>
-                    <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <a class="dropdown-item" href="{{ route('login') }}"
                               onclick="event.preventDefault();
                                         this.closest('form').submit();">
@@ -70,3 +61,4 @@
           </nav>
           @endif
           <!-- / Navbar -->
+
