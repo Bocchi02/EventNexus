@@ -1,5 +1,5 @@
   <div class="app-brand demo">
-            <a href="index.html" class="app-brand-link">
+            <a href="#" class="app-brand-link">
               <span class="app-brand-logo demo">
                 <img src="{{ asset('assets/img/branding/eventnexus-logo.svg') }}" alt="logo" width="30">
               </span>
@@ -70,8 +70,8 @@
             </li>
             <li class="menu-item {{ request()->routeIs('guest.events') ? 'active open' : '' }}">
               <a href="{{route('guest.events')}}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate" data-i18n="Events">Events</div>
+                <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                <div class="text-truncate" data-i18n="Invitations">Invitations</div>
               </a>
             </li>
             @endif

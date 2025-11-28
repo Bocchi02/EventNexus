@@ -159,7 +159,7 @@
                             </div>
 
                             <div>
-                                <a href="mailto:{{ $client->email }}" class="btn btn-sm btn-icon btn-outline-secondary">
+                                <a href="mailto:{{ $client->email }}" class="btn btn-sm btn-icon btn-outline-primary">
                                     <i class="bx bx-envelope"></i>
                                 </a>
                             </div>

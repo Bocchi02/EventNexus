@@ -1,6 +1,26 @@
 @extends('layouts.app')
 @section('title', 'Client Dashboard | EventNexus')
 
+@section('styles')
+<style>
+.event-image-container {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 3 / 4;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    box-shadow: 0 0.5rem 1rem rgba(58, 53, 65, 0.15);
+  }
+.event-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+@endsection
+
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
     
@@ -296,24 +316,6 @@
         </div>
     </div>
 </div>
-
-<style>
-  .event-image-container {
-    position: relative;
-    width: 100%;
-    max-width: 420px;
-    aspect-ratio: 3 / 4;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    background-color: #f8f9fa;
-    box-shadow: 0 0.5rem 1rem rgba(58, 53, 65, 0.15);
-  }
-  .event-image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -80,7 +80,7 @@
 
             <p class="text-center">
               <span>New on our platform?</span>
-              <a href="auth-register-cover.html">
+              <a href="{{route('register')}}">
                 <span>Create an account</span>
               </a>
             </p>

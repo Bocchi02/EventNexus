@@ -326,6 +326,7 @@
                             completed: { title: "Completed", class: "bg-label-primary" },
                             cancelled: { title: "Cancelled", class: "bg-label-danger" },
                             upcoming: { title: "Upcoming", class: "bg-label-info" },
+                            ongoing: { title: "Ongoing", class: "bg-label-success" }
                         };
                         const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
                         return `<span class="badge ${s.class}">${s.title}</span>`;
@@ -336,18 +337,7 @@
                     title: "Actions",
                     orderable: false,
                     searchable: false,
-                    render: function (data, type, full) {
-                        // Logic: Only show "Cancel" if event is Upcoming
-                        let cancelButton = '';
-                        if (full.status === 'upcoming') {
-                            cancelButton = `
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item text-warning cancel-event-btn" data-id="${full.id}">
-                                        <i class="bx bx-block me-1"></i> Cancel Event
-                                    </a>
-                                </li>`;
-                        }
-
+                    render: function (data, type, full) {   
                         return `
                             <div class="d-inline-block">
                                 <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
@@ -371,26 +361,13 @@
                                             <i class="bx bx-group me-1"></i> Guest List
                                         </a>
                                     </li>
-
-                                    ${cancelButton ? '<li><hr class="dropdown-divider"></li>' : ''}
-
-                                    ${cancelButton}
-
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li>
-                                        <a href="javascript:void(0);" class="dropdown-item text-danger delete-event-btn" data-id="${full.id}">
-                                            <i class="bx bx-trash me-1"></i> Delete
-                                        </a>
-                                    </li>
                                 </ul>
                             </div>`;
                     },
                 }
 
             ],
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center"><"dt-action-buttons text-end pt-6 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                 displayLength: 7,
                 lengthMenu: [7, 10, 25, 50, 75, 100],
@@ -674,69 +651,5 @@
             }
         });
     });
-
-    // Cancel Event Handler
-    $(document).on("click", ".cancel-event-btn", function () {
-        const eventId = $(this).data("id");
-
-        Swal.fire({
-            title: 'Cancel this event?',
-            text: "Guests will be notified. This cannot be undone!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ffbb33',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, cancel it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/client/events/${eventId}/cancel`,
-                    type: "POST",
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        Swal.fire('Cancelled!', 'The event has been cancelled.', 'success');
-                        $('.datatables-basic').DataTable().ajax.reload(); // Reload table
-                    },
-                    error: function () {
-                        Swal.fire('Error', 'Something went wrong.', 'error');
-                    }
-                });
-            }
-        });
-    });
-
-    // Delete event handler
-    $(document).on("click", ".delete-event-btn", function () {
-        const eventId = $(this).data("id");
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'error',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/client/events/${eventId}`,
-                    type: "DELETE",
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        Swal.fire('Deleted!', 'Your event has been deleted.', 'success');
-                        $('.datatables-basic').DataTable().ajax.reload();
-                    },
-                    error: function () {
-                        Swal.fire('Error', 'Failed to delete event.', 'error');
-                    }
-                });
-            }
-        });
-    });
-
 </script>
 @endsection

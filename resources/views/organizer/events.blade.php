@@ -47,7 +47,7 @@
                   <table class="datatables-basic table border-top">
                     <thead>
                     <tr>
-                        <th></th> <!-- potang th yan -->
+                        <th></th> 
                         <th>Title</th>
                         <th>Venue</th>
                         <th>Start Date</th>
@@ -210,7 +210,7 @@
                         
                         <div class="modal-footer">
                             <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="submit" class="btn btn-label-primary">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -238,7 +238,7 @@
 
                         <!-- Details Section -->
                         <div class="col-md-7">
-                            <h5 id="event-title" class="fw-bold mb-3"></h5>
+                            <h5 id="event-title" class="fw-bold mb-3 "></h5>
                             <p><strong>Client:</strong> <span id="event-client"></span></p>
                             <p><strong>Venue:</strong> <span id="event-venue"></span></p>
                             <p><strong>Capacity:</strong> <span id="event-capacity"></span></p>
@@ -250,10 +250,6 @@
                             <p id="event-description" class="text-muted"></p>
                         </div>
                         </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                     </div>
                 </div>
@@ -342,6 +338,7 @@
                             completed: { title: "Completed", class: "bg-label-primary" },
                             cancelled: { title: "Cancelled", class: "bg-label-danger" },
                             upcoming: { title: "Upcoming", class: "bg-label-info" },
+                            ongoing: { title: "Ongoing", class: "bg-label-success"}
                         };
                         const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
                         return `<span class="badge ${s.class}">${s.title}</span>`;
@@ -354,43 +351,59 @@
                     searchable: false,
                     render: function (data, type, full) {
                         // Check if event is already cancelled or completed
-                        const isCancelled = full.status === "cancelled" || full.status === "completed";
+                        const isCancelled = full.status === "cancelled" || full.status === "completed" || full.status === "ongoing";
                         const cancelClass = isCancelled ? "text-muted disabled" : "cancel-event-btn text-warning";
-                        const cancelText = isCancelled ? "Already Cancelled" : "Cancel";
-                        const isDisabled = full.status === "cancelled" || full.status === "completed";
+                        const cancelText = isCancelled ? "Not Allowed" : "Cancel";
+                        const isDisabled = full.status === "cancelled" || full.status === "completed" || full.status === "ongoing";
+
+                        // Disable edit for ongoing, completed, cancelled
+                        const disableEdit =
+                            full.status === "ongoing" ||
+                            full.status === "completed" ||
+                            full.status === "cancelled";
+
+                        // Attributes for edit button
+                        const editAttributes = disableEdit
+                            ? `class="btn btn-icon item-edit editEventBtn text-muted" style="pointer-events:none;"`
+                            : `class="btn btn-icon item-edit editEventBtn" 
+                            data-id="${full.id}" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editEventModal"`;
 
                         return `
                         <div class="d-inline-block">
                             <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
-                            <i class="bx bx-dots-vertical-rounded bx-md"></i>
+                                <i class="bx bx-dots-vertical-rounded bx-md"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end m-0">
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
-                                <i class="bx bx-show me-1"></i> View
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item view-event-btn" data-id="${full.id}">
+                                        <i class="bx bx-show me-1"></i> View
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
+                                        <i class="bx bx-block me-1"></i> ${cancelText}
+                                    </a>
+                                </li>
+                                <div class="dropdown-divider"></div>
+                                <a href="javascript:void(0);" 
+                                    class="dropdown-item text-danger delete-event-btn ${isDisabled ? "disabled text-muted" : ""}" 
+                                    data-id="${full.id}">
+                                    <i class="bx bx-trash me-1"></i> ${isDisabled ? "Not Allowed" : "Delete"}
                                 </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" class="dropdown-item ${cancelClass}" data-id="${full.id}" data-status="${full.status}">
-                                <i class="bx bx-block me-1"></i> ${cancelText}
-                                </a>
-                            </li>
-                            <div class="dropdown-divider"></div>
-                            <a href="javascript:void(0);" 
-                              class="dropdown-item text-danger delete-event-btn ${isDisabled ? "disabled text-muted" : ""}" 
-                              data-id="${full.id}">
-                                <i class="bx bx-trash me-1"></i> ${isDisabled ? "Not Allowed" : "Delete"}
-                            </a>
                             </ul>
                         </div>
-                        <a href="javascript:;" class="btn btn-icon item-edit editEventBtn" data-id="${full.id}" data-bs-toggle="modal" data-bs-target="#editEventModal">
+
+                        <a href="javascript:;" data-id="${full.id}" ${editAttributes}>
                             <i class="bx bx-edit bx-md"></i>
-                        </a>`;
+                        </a>
+                        `;
                     },
                 }
 
             ],
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center"><"dt-action-buttons text-end pt-6 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                 displayLength: 7,
                 lengthMenu: [7, 10, 25, 50, 75, 100],
@@ -471,9 +484,7 @@
                     timer: 1500,
                     showConfirmButton: false,
                 });
-                if (typeof dt_basic !== "undefined") {
-                    dt_basic.ajax.reload();
-                }
+                $('.datatables-basic').DataTable().ajax.reload();
             },
             error: function (xhr) {
                 let errors = xhr.responseJSON?.errors;
@@ -635,10 +646,8 @@ $(document).on("click", ".cancel-event-btn", function () {
             timer: 1500,
             showConfirmButton: false,
           }).then(() => {
-            // ✅ Correct way to refresh the DataTable
-            if (typeof dt_basic !== "undefined") {
-              dt_basic.ajax.reload(null, false);
-            }
+            // Reload the DataTable
+            $('.datatables-basic').DataTable().ajax.reload();
           });
         },
         error: function (xhr) {

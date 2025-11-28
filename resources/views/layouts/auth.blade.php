@@ -3,7 +3,6 @@
   lang="{{ str_replace('_', '-', app()->getLocale()) }}"
   class="light-style layout-wide customizer-hide"
   dir="ltr"
-  data-theme="theme-default"
   data-assets-path="{{ asset('assets/') . '/' }}"
   data-style="light"
 >
@@ -35,6 +34,9 @@
     <link rel="stylesheet" href="../../assets/css/demo.css" />
 
     <!-- Vendors CSS -->
+    <link rel="stylesheet" href="../../assets/vendor/libs/bs-stepper/bs-stepper.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/bootstrap-select/bootstrap-select.css" />
+    <link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="../../assets/vendor/libs/typeahead-js/typeahead.css" />
     <!-- Vendor -->
@@ -49,7 +51,7 @@
     <!--? Template customizer: To hide customizer set displayCustomizer value false in config.js.  -->
     <!-- <script src="../../assets/vendor/js/template-customizer.js"></script> -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-    <script src="../../assets/js/config.js"></script>
+    <!-- <script src="../../assets/js/config.js"></script> -->
     
   </head>
   <body>
@@ -69,6 +71,10 @@
       
       <!-- FormValidation JS (Required for pages-auth.js) -->
         <!-- Vendors JS -->
+        <script src="../../assets/vendor/libs/cleavejs/cleave.js"></script>
+        <script src="../../assets/vendor/libs/cleavejs/cleave-phone.js"></script>
+        <script src="../../assets/vendor/libs/bs-stepper/bs-stepper.js"></script>
+        <script src="../../assets/vendor/libs/select2/select2.js"></script>
         <script src="../../assets/vendor/libs/@form-validation/popular.js"></script>
         <script src="../../assets/vendor/libs/@form-validation/bootstrap5.js"></script>
         <script src="../../assets/vendor/libs/@form-validation/auto-focus.js"></script>

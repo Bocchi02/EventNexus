@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'My Invitations | EventNexus')
 @section('styles')
 <style>
     /* Event Image Container (Keeping the style block from the original for consistency) */
@@ -32,10 +33,6 @@
 
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">
-        <span class="text-muted fw-light">Dashboard /</span> My Invitations
-    </h4>
-    
     <!-- DataTable -->
     <div class="card">
         <div class="card-datatable table-responsive">
@@ -100,7 +97,7 @@
 
 @section('scripts')
 <script>
-    // 💡 Guest-specific AJAX URLs
+    //  Guest-specific AJAX URLs
     const GUEST_EVENTS_AJAX_URL = "/guest/getEvents"; 
     const GUEST_EVENT_DETAIL_URL = "/guest/events/"; 
     
@@ -111,7 +108,7 @@
         if (dt_basic_table.length) {
             dt_basic = dt_basic_table.DataTable({
                 ajax: {
-                    // 🚀 Guest Data Source
+                    //  Guest Data Source
                     url: GUEST_EVENTS_AJAX_URL,
                     dataSrc: "data"
                 },
@@ -197,7 +194,7 @@
                     }
                     
                     // Show Cancel button if status is accepted (they can cancel their acceptance)
-                    if (full.invitation_status === 'accepted') {
+                    if (full.invitation_status === 'accepted' && full.status === 'upcoming') {
                         actions += `
                             <a href="javascript:void(0);" class="btn btn-sm btn-icon btn-warning cancel-invite-btn" data-id="${full.id}" title="Cancel Attendance">
                                 <i class="bx bx-x-circle"></i>
@@ -219,7 +216,7 @@
             }
             ],
                 order: [[2, "desc"]],
-                // 🚀 Removed all buttons (B) from the DOM structure
+                //  Removed all buttons (B) from the DOM structure
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center">><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                 displayLength: 7,
                 lengthMenu: [7, 10, 25, 50, 75, 100],
@@ -232,7 +229,7 @@
         }
     });
 
-    // 💡 Guest-side Modal Handler for View Details
+    //  Guest-side Modal Handler for View Details
     $(document).on("click", ".view-event-btn", function () {
         const eventId = $(this).data("id");
 
