@@ -100,51 +100,55 @@
                 </div>
                 <!-- Invite Guest Modal -->
                 <div class="modal fade" id="inviteGuestModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-md">
-                    <div class="modal-content">
-                    <form id="inviteGuestForm">
-                        @csrf
-                        <div class="modal-header">
-                        <h5 class="modal-title">Invite Guest</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-dialog modal-dialog-centered modal-md">
+                        <div class="modal-content">
+                            <form id="inviteGuestForm">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Invite Guest</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <input type="hidden" id="event_id" name="event_id">
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">First Name</label>
+                                            <input type="text" class="form-control" name="firstname" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Middle Name</label>
+                                            <input type="text" class="form-control" name="middlename">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" name="lastname" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Guest Email</label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Allocated Seats</label>
+                                        <input type="number" class="form-control" name="seats" value="1" min="1" required>
+                                    </div>
+
+                                    <div class="alert alert-secondary small mb-0">
+                                        <i class="bx bx-info-circle me-1"></i>
+                                        A guest account will automatically be created if no account exists for this email.
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" id="sendInviteBtn" class="btn btn-primary">Send Invitation</button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="modal-body">
-                        <input type="hidden" id="event_id" name="event_id">
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="firstname" required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" name="middlename">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="lastname" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Guest Email</label>
-                            <input type="email" class="form-control" name="email" required>
-                        </div>
-
-                        <div class="alert alert-secondary small">
-                            A guest account will automatically be created if no account exists for this email.
-                        </div>
-                        </div>
-
-                        <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" id="sendInviteBtn" class="btn btn-primary">Send Invitation</button>
-                        </div>
-
-                    </form>
                     </div>
                 </div>
                 </div>

@@ -95,9 +95,11 @@ class ClientController extends Controller
     public function show($id)
     {
         $event = Event::with('client:id,firstname,lastname,middlename')->findOrFail($id);
-        $event->loadCount(['guests as accepted_count' => function ($query) {
-        $query->where('event_guest.status', 'accepted');
-    }]);
+        $acceptedSeats = DB::table('event_guest')
+                            ->where('event_id', $event->id)
+                            ->where('status', 'accepted')
+                            ->sum('seats');
+        $event->accepted_count = $acceptedSeats;
 
         // Add a fallback if client doesn't exist
         if (!$event->client) {

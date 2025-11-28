@@ -59,9 +59,11 @@ class InviteGuestController extends Controller
             'email' => 'required|email',
             'firstname' => 'required|string',
             'lastname' => 'required|string',
+            'seats' => 'required|integer|min:1',
         ]);
         
         $email = $request->input('email');
+        $seats = $request->input('seats');
         $event = Event::findOrFail($eventId);
 
         // Check if user already exists in the system
@@ -71,7 +73,7 @@ class InviteGuestController extends Controller
             // 1. Attach them to the event with 'pending' status if not already attached
             // We use syncWithoutDetaching to avoid overwriting if they are already there
             if (!$event->guests->contains($existingUser->id)) {
-                $event->guests()->attach($existingUser->id, ['status' => 'pending']);
+                $event->guests()->attach($existingUser->id, ['status' => 'pending', 'seats' => $seats]);
             } else {
                 // If they are already attached, maybe reset status to pending?
                 // Optional: $event->guests()->updateExistingPivot($existingUser->id, ['status' => 'pending']);
@@ -101,6 +103,7 @@ class InviteGuestController extends Controller
                 'email' => $email,
                 'firstname' => $request->input('firstname'),
                 'lastname' => $request->input('lastname'),
+                'seats' => $seats,
                 'invite_token' => $token,
             ]);
 
@@ -138,7 +141,7 @@ class InviteGuestController extends Controller
         }
 
         // Attach to event
-        $pending->event->guests()->syncWithoutDetaching([$user->id]);
+        $pending->event->guests()->syncWithoutDetaching([$user->id=> ['seats' => $pending->seats]]);
 
         // Update status
         $pending->update(['status' => 'accepted']);
