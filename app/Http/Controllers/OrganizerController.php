@@ -31,6 +31,22 @@ class OrganizerController extends Controller
                                 ->where('status', 'cancelled')
                                 ->count();
 
+        // Upcoming Schedule
+        $upcomingSchedule = Event::where('organizer_id', $organizerId)
+                                ->where('start_date', '>=', now())
+                                ->orderBy('start_date', 'asc')
+                                ->take(5)
+                                ->get();
+
+        // 2. Fetch Recent Clients (Unique clients from your events)
+        $recentClients = Event::where('organizer_id', $organizerId)
+                            ->with('client')
+                            ->latest()
+                            ->get()
+                            ->pluck('client') // Get the user object
+                            ->unique('id')    // Remove duplicates
+                            ->take(5);
+
         // --- Growth Calculation ---
 
         // Events created this week
@@ -54,7 +70,9 @@ class OrganizerController extends Controller
             'upcomingEvents', 
             'completedEvents', 
             'cancelledEvents',
-            'growth'
+            'growth',
+            'upcomingSchedule',
+            'recentClients'
         ));
     }
 
@@ -135,6 +153,7 @@ class OrganizerController extends Controller
             'venue' => 'required|string|max:255',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'capacity' => 'required|integer|min:1',
             'cover_image' => 'nullable|file|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:2048',
             'gallery_images.*' => 'nullable|file|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:2048',
         ]);
@@ -145,6 +164,7 @@ class OrganizerController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'venue' => $validated['venue'],
+            'capacity' => $validated['capacity'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'status' => 'upcoming',
@@ -192,6 +212,7 @@ class OrganizerController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'venue' => 'required|string|max:255',
+            'capacity' => 'nullable|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'status' => 'nullable|in:upcoming,ongoing,completed,cancelled',
@@ -204,6 +225,7 @@ class OrganizerController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'venue' => $validated['venue'],
+            'capacity' => $request->input('capacity'),
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
         ];
@@ -248,6 +270,9 @@ class OrganizerController extends Controller
     public function show($id)
     {
         $event = Event::with('client:id,firstname,lastname,middlename')->findOrFail($id);
+        $event->loadCount(['guests as accepted_count' => function ($query) {
+        $query->where('event_guest.status', 'accepted');
+    }]);
 
         // Add a fallback if client doesn't exist
         if (!$event->client) {

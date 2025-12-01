@@ -16,6 +16,7 @@ class Event extends Model
         'title',
         'description',
         'venue',
+        'capacity',
         'start_date',
         'end_date',
         'status',
@@ -63,7 +64,7 @@ class Event extends Model
     public function guests()
     {
         return $this->belongsToMany(User::class, 'event_guest', 'event_id', 'user_id')
-                    ->withPivot('status', 'role')
+                    ->withPivot('status', 'role', 'seats')
                     ->withTimestamps();
     }
 }

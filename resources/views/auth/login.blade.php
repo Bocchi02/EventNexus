@@ -62,7 +62,6 @@
                     placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
                     aria-describedby="password"
                     required/>
-                  <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                 </div>
               </div>
               <div class="my-8">
@@ -81,7 +80,7 @@
 
             <p class="text-center">
               <span>New on our platform?</span>
-              <a href="auth-register-cover.html">
+              <a href="{{route('register')}}">
                 <span>Create an account</span>
               </a>
             </p>

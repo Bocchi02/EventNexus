@@ -10,7 +10,7 @@
 // JS global variables
 window.config = {
     colors: {
-        primary: "#696cff",
+        primary: "#0D9394", // Main primary color
         secondary: "#8592a3",
         success: "#71dd37",
         info: "#03c3ec",
@@ -27,7 +27,7 @@ window.config = {
         borderColor: "#e4e6e8",
     },
     colors_label: {
-        primary: "#696cff29",
+        primary: "#0D939429",
         secondary: "#8592a329",
         success: "#71dd3729",
         info: "#03c3ec29",
@@ -93,20 +93,13 @@ if (typeof TemplateCustomizer !== "undefined") {
         themesPath:
             assetsPath + "vendor/css" + (rtlSupport ? "/rtl" : "") + "/",
         displayCustomizer: true,
+
         lang:
             localStorage.getItem(
                 "templateCustomizer-" + templateName + "--Lang"
-            ) || "en", // Set default language here
-        // defaultTheme: 2,
-        // defaultStyle: 'system',
-        // defaultTextDir: 'rtl',
-        // defaultContentLayout: 'wide',
-        // defaultHeaderType: 'static',
-        // defaultMenuCollapsed: true,
-        // defaultNavbarType: 'sticky',
-        // defaultFooterFixed: false,
-        // defaultShowDropdownOnHover: false,
+            ) || "en",
         controls: [
+            "color",
             "rtl",
             "style",
             "headerType",

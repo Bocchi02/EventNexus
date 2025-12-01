@@ -81,6 +81,8 @@
                             <h5 id="event-title" class="fw-bold mb-3"></h5>
                             <p><strong>Client:</strong> <span id="event-client"></span></p>
                             <p><strong>Venue:</strong> <span id="event-venue"></span></p>
+                            <p><strong>Capacity:</strong> <span id="event-capacity"></span></p>
+                            <p><strong>Available Seats:</strong> <span id="event-seats-left" class="fw-bold text-success"></span></p>
                             <p><strong>Start:</strong> <span id="event-start"></span></p>
                             <p><strong>End:</strong> <span id="event-end"></span></p>
                             <p><strong>Status:</strong> <span id="event-status" class="badge bg-label-info"></span></p>
@@ -98,51 +100,55 @@
                 </div>
                 <!-- Invite Guest Modal -->
                 <div class="modal fade" id="inviteGuestModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-md">
-                    <div class="modal-content">
-                    <form id="inviteGuestForm">
-                        @csrf
-                        <div class="modal-header">
-                        <h5 class="modal-title">Invite Guest</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-dialog modal-dialog-centered modal-md">
+                        <div class="modal-content">
+                            <form id="inviteGuestForm">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Invite Guest</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <input type="hidden" id="event_id" name="event_id">
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">First Name</label>
+                                            <input type="text" class="form-control" name="firstname" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Middle Name</label>
+                                            <input type="text" class="form-control" name="middlename">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" name="lastname" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Guest Email</label>
+                                        <input type="email" class="form-control" name="email" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Allocated Seats</label>
+                                        <input type="number" class="form-control" name="seats" value="1" min="1" required>
+                                    </div>
+
+                                    <div class="alert alert-secondary small mb-0">
+                                        <i class="bx bx-info-circle me-1"></i>
+                                        A guest account will automatically be created if no account exists for this email.
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" id="sendInviteBtn" class="btn btn-primary">Send Invitation</button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="modal-body">
-                        <input type="hidden" id="event_id" name="event_id">
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="firstname" required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" name="middlename">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="lastname" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Guest Email</label>
-                            <input type="email" class="form-control" name="email" required>
-                        </div>
-
-                        <div class="alert alert-secondary small">
-                            A guest account will automatically be created if no account exists for this email.
-                        </div>
-                        </div>
-
-                        <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" id="sendInviteBtn" class="btn btn-primary">Send Invitation</button>
-                        </div>
-
-                    </form>
                     </div>
                 </div>
                 </div>
@@ -324,6 +330,7 @@
                             completed: { title: "Completed", class: "bg-label-primary" },
                             cancelled: { title: "Cancelled", class: "bg-label-danger" },
                             upcoming: { title: "Upcoming", class: "bg-label-info" },
+                            ongoing: { title: "Ongoing", class: "bg-label-success" }
                         };
                         const s = statusMap[full.status] || { title: full.status, class: "bg-label-secondary" };
                         return `<span class="badge ${s.class}">${s.title}</span>`;
@@ -334,18 +341,7 @@
                     title: "Actions",
                     orderable: false,
                     searchable: false,
-                    render: function (data, type, full) {
-                        // Logic: Only show "Cancel" if event is Upcoming
-                        let cancelButton = '';
-                        if (full.status === 'upcoming') {
-                            cancelButton = `
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item text-warning cancel-event-btn" data-id="${full.id}">
-                                        <i class="bx bx-block me-1"></i> Cancel Event
-                                    </a>
-                                </li>`;
-                        }
-
+                    render: function (data, type, full) {   
                         return `
                             <div class="d-inline-block">
                                 <a href="javascript:;" class="btn btn-icon dropdown-toggle hide-arrow me-1" data-bs-toggle="dropdown">
@@ -369,26 +365,13 @@
                                             <i class="bx bx-group me-1"></i> Guest List
                                         </a>
                                     </li>
-
-                                    ${cancelButton ? '<li><hr class="dropdown-divider"></li>' : ''}
-
-                                    ${cancelButton}
-
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li>
-                                        <a href="javascript:void(0);" class="dropdown-item text-danger delete-event-btn" data-id="${full.id}">
-                                            <i class="bx bx-trash me-1"></i> Delete
-                                        </a>
-                                    </li>
                                 </ul>
                             </div>`;
                     },
                 }
 
             ],
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
                 dom: '<"card-header flex-column flex-md-row pb-0"<"head-label text-center"><"dt-action-buttons text-end pt-6 pt-md-0"B>><"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6 d-flex justify-content-center justify-content-md-end mt-n6 mt-md-0"f>>t<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                 displayLength: 7,
                 lengthMenu: [7, 10, 25, 50, 75, 100],
@@ -478,6 +461,30 @@
         $("#event-title").text(event.title);
         $("#event-client").text(event.client?.full_name || "Unknown Client");
         $("#event-venue").text(event.venue);
+        $("#event-capacity").text(event.capacity ? event.capacity + ' Guests' : 'Unlimited');
+        if (event.capacity) {
+                let accepted = event.accepted_count || 0; // Value from Controller
+                let remaining = event.capacity - accepted;
+                
+                // Text formatting
+                let seatsText = `${remaining} seats left`;
+                
+                // Logic: If full, show 'Sold Out' in red. If available, show green.
+                if (remaining <= 0) {
+                    $("#event-seats-left")
+                        .removeClass("text-success")
+                        .addClass("text-danger")
+                        .text("Full / Fully Booked");
+                } else {
+                    $("#event-seats-left")
+                        .removeClass("text-danger")
+                        .addClass("text-success")
+                        .text(seatsText);
+                }
+            } else {
+                $("#event-seats-left").text("Unlimited");
+            }
+        
         $("#event-start").text(start);
         $("#event-end").text(end);
         $("#event-description").text(event.description ?? "No description provided.");
@@ -648,69 +655,5 @@
             }
         });
     });
-
-    // Cancel Event Handler
-    $(document).on("click", ".cancel-event-btn", function () {
-        const eventId = $(this).data("id");
-
-        Swal.fire({
-            title: 'Cancel this event?',
-            text: "Guests will be notified. This cannot be undone!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ffbb33',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, cancel it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/client/events/${eventId}/cancel`,
-                    type: "POST",
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        Swal.fire('Cancelled!', 'The event has been cancelled.', 'success');
-                        $('.datatables-basic').DataTable().ajax.reload(); // Reload table
-                    },
-                    error: function () {
-                        Swal.fire('Error', 'Something went wrong.', 'error');
-                    }
-                });
-            }
-        });
-    });
-
-    // Delete event handler
-    $(document).on("click", ".delete-event-btn", function () {
-        const eventId = $(this).data("id");
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'error',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `/client/events/${eventId}`,
-                    type: "DELETE",
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        Swal.fire('Deleted!', 'Your event has been deleted.', 'success');
-                        $('.datatables-basic').DataTable().ajax.reload();
-                    },
-                    error: function () {
-                        Swal.fire('Error', 'Failed to delete event.', 'error');
-                    }
-                });
-            }
-        });
-    });
-
 </script>
 @endsection

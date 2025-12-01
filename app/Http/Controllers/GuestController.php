@@ -107,9 +107,18 @@ class GuestController extends Controller
         $event = Event::whereHas('guests', function ($query) use ($guestId) {
                 $query->where('user_id', $guestId);
             })
-            ->with('organizer:id,firstname,lastname,middlename')
+            ->with([
+                'organizer:id,firstname,lastname,middlename',
+                'guests' => function($query) use ($guestId) {
+                    $query->where('user_id', $guestId);
+                }
+            ])
             ->findOrFail($id);
         
+        // Get the guest data with pivot information
+        $guestData = $event->guests->first();
+        $event->my_allocated_seats = $guestData && $guestData->pivot ? $guestData->pivot->seats : 1;
+
         if ($event->organizer) {
             $event->organizer->full_name = trim(
                 $event->organizer->firstname . ' ' . 
@@ -124,15 +133,25 @@ class GuestController extends Controller
     public function respondToInvitation(Request $request, $eventId)
     {
         $request->validate([
-            'status' => 'required|in:accepted,declined,cancelled'
+            'status' => 'required|in:accepted,declined,cancelled',
+            'seats_confirmed' => 'nullable|integer|min:1'
         ]);
         
         $guestId = Auth::id();
+
+        // Build the update data array
+        $updateData = ['status' => $request->status];
+
+        // If accepting and seats are provided, update seats
+        if ($request->status === 'accepted' && $request->has('seats_confirmed')) {
+            $updateData['seats'] = $request->seats_confirmed;
+        }
         
+        // Use the $updateData array in the update call
         $updated = DB::table('event_guest')
             ->where('event_id', $eventId)
             ->where('user_id', $guestId)
-            ->update(['status' => $request->status]);
+            ->update($updateData); // Use $updateData instead of just status
         
         if ($updated) {
             $statusMessages = [

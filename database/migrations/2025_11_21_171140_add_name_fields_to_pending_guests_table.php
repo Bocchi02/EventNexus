@@ -12,16 +12,20 @@ return new class extends Migration
     public function up()
     {
         Schema::table('pending_guests', function (Blueprint $table) {
-            $table->string('firstname')->after('event_id');
-            $table->string('middlename')->nullable()->after('firstname');
-            $table->string('lastname')->after('middlename');
-        });
-    }
+            // Only add 'firstname' if it doesn't exist yet
+            if (!Schema::hasColumn('pending_guests', 'firstname')) {
+                $table->string('firstname')->after('event_id');
+            }
 
-    public function down()
-    {
-        Schema::table('pending_guests', function (Blueprint $table) {
-            $table->dropColumn(['firstname', 'middlename', 'lastname']);
+            // Only add 'middlename' if it doesn't exist yet
+            if (!Schema::hasColumn('pending_guests', 'middlename')) {
+                $table->string('middlename')->nullable()->after('firstname');
+            }
+
+            // Only add 'lastname' if it doesn't exist yet
+            if (!Schema::hasColumn('pending_guests', 'lastname')) {
+                $table->string('lastname')->after('middlename');
+            }
         });
     }
 
