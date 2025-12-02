@@ -298,15 +298,71 @@
                             <img id="event-image" src="/images/no-image.png" alt="Event Cover">
                         </div>
                     </div>
+                    <!-- Details Section -->
                     <div class="col-md-7">
-                        <h5 id="event-title" class="fw-bold mb-3"></h5>
-                        <p><strong>Client:</strong> <span id="event-client"></span></p>
-                        <p><strong>Venue:</strong> <span id="event-venue"></span></p>
-                        <p><strong>Start:</strong> <span id="event-start"></span></p>
-                        <p><strong>End:</strong> <span id="event-end"></span></p>
-                        <p><strong>Status:</strong> <span id="event-status" class="badge bg-label-info"></span></p>
-                        <p class="mt-3"><strong>Description:</strong></p>
-                        <p id="event-description" class="text-muted"></p>
+                        <h4 id="event-title" class="fw-bold mb-3 text-primary"></h4>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-user-pin text-primary me-2 fs-5"></i>
+                                    <p class="mb-0"><strong>Client:</strong> <span id="event-client"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-map text-primary me-2 fs-5"></i>
+                                    <p class="mb-0"><strong>Venue:</strong> <span id="event-venue"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-group text-primary me-2 fs-5"></i>
+                                    <p class="mb-0"><strong>Capacity:</strong> <span id="event-capacity"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-chair text-primary me-2 fs-5"></i>
+                                    <p class="mb-0">
+                                        <strong>Available Seats:</strong>
+                                        <span id="event-seats-left" class="fw-bold text-success"></span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-time text-primary me-2 fs-5"></i>
+                                    <p class="mb-0"><strong>Start:</strong> <span id="event-start"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-time-five text-primary me-2 fs-5"></i>
+                                    <p class="mb-0"><strong>End:</strong> <span id="event-end"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-info-circle text-primary me-2 fs-5"></i>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong>
+                                        <span id="event-status" class="badge bg-label-info ms-1"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="fw-bold text-secondary">Description</h6>
+                        <p id="event-description" class="text-muted mt-2"></p>
                     </div>
                 </div>
             </div>
@@ -316,7 +372,9 @@
         </div>
     </div>
 </div>
+@endsection
 
+@section('script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Get the event start date from Blade
@@ -353,46 +411,94 @@
         }
         
     $(document).on("click", ".view-event-btn", function () {
-        const eventId = $(this).data("id");
+    const eventId = $(this).data("id");
 
-        // Show loading state
-        $("#viewEventModal .modal-title").text("Loading...");
-        $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
-        $("#event-description").text("Loading...");
-        $("#event-image").attr("src", "").attr("alt", "Loading...");
-        $("#viewEventModal").modal("show");
+    // Show loading state
+    $("#viewEventModal .modal-title").text("Loading...");
+    $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
+    $("#event-description").text("Loading...");
+    $("#event-image").attr("src", "").attr("alt", "Loading...");
+    $("#viewEventModal").modal("show");
 
-        // Fetch details
-        $.ajax({
-            url: `/client/events/${eventId}`,
-            method: "GET",
-            success: function (event) {
-                const start = new Date(event.start_date).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
-                const end = new Date(event.end_date).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
-
-                // Update modal
-                $("#viewEventModal .modal-title").text(event.title);
-                $("#event-title").text(event.title);
-                $("#event-client").text(event.client?.full_name || "Unknown Client");
-                $("#event-venue").text(event.venue);
-                $("#event-start").text(start);
-                $("#event-end").text(end);
-                $("#event-description").text(event.description ?? "No description provided.");
-
-                // Update badge color
-                const statusColors = { upcoming: "bg-label-info", ongoing: "bg-label-success", completed: "bg-label-primary", cancelled: "bg-label-danger" };
-                const badgeClass = statusColors[event.status] || "bg-label-secondary";
-                $("#event-status").removeClass().addClass(`badge ${badgeClass}`).text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
-
-                // Handle image (Use the logic from your events file)
-                const imagePath = event.cover_image ? `/${event.cover_image}` : "/images/no-image.png";
-                $("#event-image").attr("src", imagePath).attr("alt", event.title);
-            },
-            error: function () {
-                $("#viewEventModal .modal-title").text("Error");
-                $("#event-description").text("Failed to load event details.");
-            }
+    // Fetch details
+    $.ajax({
+        url: `/client/events/${eventId}`,
+        method: "GET",
+        success: function (event) {
+        const start = new Date(event.start_date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
         });
+        const end = new Date(event.end_date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+
+        // Update modal
+        $("#viewEventModal .modal-title").text(event.title);
+        $("#event-title").text(event.title);
+        $("#event-client").text(event.client?.full_name || "Unknown Client");
+        $("#event-venue").text(event.venue);
+        $("#event-capacity").text(event.capacity ? event.capacity + ' Guests' : 'Unlimited');
+        if (event.capacity) {
+                let accepted = event.accepted_count || 0; // Value from Controller
+                let remaining = event.capacity - accepted;
+                
+                // Text formatting
+                let seatsText = `${remaining} seats left`;
+                
+                // Logic: If full, show 'Sold Out' in red. If available, show green.
+                if (remaining <= 0) {
+                    $("#event-seats-left")
+                        .removeClass("text-success")
+                        .addClass("text-danger")
+                        .text("Full / Fully Booked");
+                } else {
+                    $("#event-seats-left")
+                        .removeClass("text-danger")
+                        .addClass("text-success")
+                        .text(seatsText);
+                }
+            } else {
+                $("#event-seats-left").text("Unlimited");
+            }
+        
+        $("#event-start").text(start);
+        $("#event-end").text(end);
+        $("#event-description").text(event.description ?? "No description provided.");
+
+        // Update badge color
+        const statusColors = {
+            upcoming: "bg-label-info",
+            ongoing: "bg-label-success",
+            completed: "bg-label-primary",
+            cancelled: "bg-label-danger",
+        };
+        const badgeClass = statusColors[event.status] || "bg-label-secondary";
+        $("#event-status")
+            .removeClass()
+            .addClass(`badge ${badgeClass}`)
+            .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
+
+        // Handle image
+        const imagePath = event.cover_image
+            ? `/${event.cover_image}`
+            : "/images/no-image.png";
+        $("#event-image").attr("src", imagePath).attr("alt", event.title);
+        },
+        error: function () {
+        $("#viewEventModal .modal-title").text("Error");
+        $("#event-description").text("Failed to load event details. Please try again.");
+        },
+    });
     });
   });
 </script>

@@ -25,6 +25,8 @@ class User extends Authenticatable
         'email',
         'password',
     ];
+    protected $appends = ['full_name'];
+
 
     /**
      * The attributes that should be hidden for serialization.

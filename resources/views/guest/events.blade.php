@@ -44,7 +44,7 @@
                         <th>Venue</th>
                         <th>Start Date</th>
                         <th>End Date</th>
-                        <th>Status</th>
+                        <th>Invite Status</th>
                         <th>Details</th> <!-- View-Only Action -->
                     </tr>
                 </thead>
