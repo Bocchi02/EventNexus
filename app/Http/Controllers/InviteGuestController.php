@@ -70,7 +70,7 @@ class InviteGuestController extends Controller
             }
 
             // Send standard RSVP email (No password needed)
-            Mail::to($user->email)->send(new \App\Mail\EventRSVP($event, $user));
+            // Mail::to($user->email)->send(new \App\Mail\EventRSVP($event, $user));
 
             return response()->json(['message' => 'Invitation sent to existing user.'], 200);
         }
