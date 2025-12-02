@@ -77,9 +77,7 @@ class ClientController extends Controller
                 return [
                     'id' => $event->id,
                     'title' => $event->title,
-                    'client' => $event->client 
-                        ? $event->client->firstname . ' ' . $event->client->lastname 
-                        : 'N/A',
+                    'client' => $event->client,
                     'venue' => $event->venue,
                     //  Keep both date + time (Philippine standard)
                     'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
@@ -126,7 +124,7 @@ class ClientController extends Controller
 
         // 1. Get Guests from the Pivot Table (Registered Users)
         // We fetch ALL statuses here, including 'pending'
-        $pivotGuests = \DB::table('event_guest')
+        $pivotGuests = DB::table('event_guest')
             ->join('users', 'event_guest.user_id', '=', 'users.id')
             ->where('event_guest.event_id', $eventId)
             ->select(

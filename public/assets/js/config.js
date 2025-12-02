@@ -93,7 +93,8 @@ if (typeof TemplateCustomizer !== "undefined") {
         themesPath:
             assetsPath + "vendor/css" + (rtlSupport ? "/rtl" : "") + "/",
         displayCustomizer: true,
-
+        defaultTheme: 2,
+        defaultStyle: "system",
         lang:
             localStorage.getItem(
                 "templateCustomizer-" + templateName + "--Lang"

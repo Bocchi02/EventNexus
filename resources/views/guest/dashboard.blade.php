@@ -48,7 +48,7 @@
                                         </div>
                                         <h5 class="card-title mb-1">{{ $invite->title }}</h5>
                                         <p class="card-text text-muted small mb-0">
-                                            Invited by: {{ $invite->client->firstname ?? 'Organizer' }}
+                                            Invited by: {{ $invite->client->firstname . ' ' .  $invite->client->lastname ?? 'Organizer' }}
                                         </p>
                                         <small class="text-muted"><i class='bx bx-map'></i> {{ $invite->venue }}</small>
                                     </div>
@@ -71,7 +71,7 @@
         
         {{-- 3. MY TICKETS HEADER --}}
         <div class="col-12 mb-4 mt-2">
-            <h5 class="text-muted fw-light">My Tickets</h5>
+            <h5 class="text-primary fw-light">My Tickets</h5>
         </div>
 
         {{-- 4. TICKETS GRID --}}
@@ -98,7 +98,7 @@
                         {{ $event->title }}
                     </h5>
                     <p class="card-text small text-muted mb-3">
-                        Hosted by: {{ $event->client ? $event->client->firstname : 'Organizer' }}
+                        Invited by: {{ $event->client ? $event->client->firstname . " " .  $event->client->lastname : 'Client' }}
                     </p>
 
                     <div class="d-flex align-items-center mb-3 text-muted small">
@@ -250,8 +250,6 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
-        console.log("✅ Dashboard Script Initialized");
-
         // Define Base URL for Images
         const BASE_URL = "{{ asset('/') }}";
 
@@ -260,7 +258,6 @@
             e.preventDefault(); 
             
             const eventId = $(this).data('id');
-            console.log("📩 Open Invitation Clicked for Event ID:", eventId);
 
             if (!eventId) return;
 
@@ -269,7 +266,7 @@
             $('#invite-modal-host').text('...');
             $('#invite-modal-date').text('...');
             $('#invite-modal-venue').text('...');
-            $('#invite-modal-seats').val(1); 
+            $('#invite-modal-seats').val(1);    
 
             // Pass ID to buttons
             $('#btn-accept').attr('data-id', eventId);

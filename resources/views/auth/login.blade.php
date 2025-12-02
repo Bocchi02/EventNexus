@@ -10,7 +10,7 @@
 
 <div class="authentication-wrapper authentication-cover">
       <!-- Logo -->
-      <a href="index.html" class="app-brand auth-cover-brand gap-2">
+      <a href="#" class="app-brand auth-cover-brand gap-2">
         <span class="app-brand-logo demo">
           <img src="{{ asset('assets/img/branding/eventnexus-logo.svg') }}" alt="logo" width="42">
         </span>
