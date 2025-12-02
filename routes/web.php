@@ -92,6 +92,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':client'])->group(function (
 
     // Public — guest accepts invitation
 Route::get('/invitation/accept/{token}', [InviteGuestController::class, 'acceptInvite'])->name('invitation.accept');
+Route::get('/invitation/decline/{token}', [InviteGuestController::class, 'declineInvite'])->name('invitation.decline');
 
 // InviteGuest Route (idk lmao)
 Route::get('/rsvp/{event}/{user}/{status}', [InviteGuestController::class, 'respond'])

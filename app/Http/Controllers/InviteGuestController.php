@@ -66,51 +66,52 @@ class InviteGuestController extends Controller
         $seats = $request->input('seats');
         $event = Event::findOrFail($eventId);
 
-        // Check if user already exists in the system
-        $existingUser = User::where('email', $email)->first();
+        // Check if user already exists
+        $user = User::where('email', $email)->first();
 
-        if ($existingUser) {
-            // 1. Attach them to the event with 'pending' status if not already attached
-            // We use syncWithoutDetaching to avoid overwriting if they are already there
-            if (!$event->guests->contains($existingUser->id)) {
-                $event->guests()->attach($existingUser->id, ['status' => 'pending', 'seats' => $seats]);
-            } else {
-                // If they are already attached, maybe reset status to pending?
-                // Optional: $event->guests()->updateExistingPivot($existingUser->id, ['status' => 'pending']);
-            }
+        // --- SCENARIO 1: USER DOES NOT EXIST (AUTO-REGISTER) ---
+        if (!$user) {
+            // 1. Set the default password
+            $rawPassword = 'password';
 
-            // 2. Send the RSVP Email (Signed URL)
-            // We need to create a Mailable for this (e.g., ExistingUserRSVP)
-            // For now, let's assume you will create it next.
-             Mail::to($existingUser->email)->send(new \App\Mail\EventRSVP($event, $existingUser));
-
-            return response()->json(['message' => 'Invitation sent to existing user.'], 200);
-
-        } else {
-            // --- User is NOT registered (Use your teammate's PendingGuest logic) ---
-            
-            // Check for duplicate pending invites
-            $pendingInvite = PendingGuest::where('email', $email)->where('event_id', $eventId)->first();
-            if ($pendingInvite) {
-                 return response()->json(['message' => 'Invitation already pending.'], 409);
-            }
-
-            // Create Pending Guest
-            $token = Str::random(32);
-            $pending = PendingGuest::create([
-                'event_id' => $event->id,
-                'client_id' => Auth::id(),
-                'email' => $email,
+            // 2. Create the User immediately
+            $user = User::create([
                 'firstname' => $request->input('firstname'),
-                'lastname' => $request->input('lastname'),
-                'seats' => $seats,
-                'invite_token' => $token,
+                'lastname'  => $request->input('lastname'),
+                'email'     => $email,
+                'password'  => bcrypt($rawPassword),
             ]);
 
-            // Send New Guest Email
-            Mail::to($email)->send(new GuestInvitationMail($pending));
-            
-            return response()->json(['message' => 'Invitation sent to new guest.'], 200);
+            // 3. Assign Spatie Role
+            $user->assignRole('guest');
+
+            // 4. Attach to Event
+            $event->guests()->attach($user->id, [
+                'status' => 'pending', 
+                'seats' => $seats
+            ]);
+
+            // 5. Send Email with Credentials
+            Mail::to($user->email)->send(new GuestInvitationMail($user, $event, $rawPassword));
+
+            return response()->json(['message' => 'Account created and invitation sent!'], 200);
+        }
+
+        // --- SCENARIO 2: USER ALREADY EXISTS ---
+        else {
+            if (!$event->guests->contains($user->id)) {
+                $event->guests()->attach($user->id, [
+                    'status' => 'pending', 
+                    'seats' => $seats
+                ]);
+            } else {
+                $event->guests()->updateExistingPivot($user->id, ['seats' => $seats]);
+            }
+
+            // Send standard RSVP email (No password needed)
+            Mail::to($user->email)->send(new \App\Mail\EventRSVP($event, $user));
+
+            return response()->json(['message' => 'Invitation sent to existing user.'], 200);
         }
     }
 
