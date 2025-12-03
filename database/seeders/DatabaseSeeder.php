@@ -30,7 +30,6 @@ class DatabaseSeeder extends Seeder
                 'middlename' => null,
                 'lastname' => 'Administrator',
                 'password' => Hash::make('password'), // default password
-                'profile_image' => null,
                 'status' => 'active',
             ]
         );
