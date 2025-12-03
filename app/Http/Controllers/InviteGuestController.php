@@ -33,7 +33,7 @@ class InviteGuestController extends Controller
         // --- SCENARIO 1: USER DOES NOT EXIST (AUTO-REGISTER) ---
         if (!$user) {
             // 1. Set the default password
-            $rawPassword = 'password';
+            $rawPassword = Str::random(8);
 
             // 2. Create the User immediately
             $user = User::create([

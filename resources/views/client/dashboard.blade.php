@@ -18,6 +18,24 @@
     height: 100%;
     object-fit: cover;
   }
+
+  /* Fallback Text */
+.no-image-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 249, 250, 0.85);
+  color: #6c757d;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 0.75rem;
+  z-index: 1;
+  pointer-events: none;
+}
 </style>
 @endsection
 
@@ -293,11 +311,13 @@
             </div>
             <div class="modal-body">
                 <div class="row align-items-start">
-                    <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 d-flex justify-content-center">
-                        <div class="event-image-container">
-                            <img id="event-image" src="/images/no-image.png" alt="Event Cover">
+                    <!-- Image Section -->
+                        <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 d-flex justify-content-center">
+                            <div class="event-image-container">
+                                <img id="event-image" src="" alt="Event Cover">
+                                <div id="no-image-text" class="no-image-text d-none">No Image</div>
+                            </div>
                         </div>
-                    </div>
                     <!-- Details Section -->
                     <div class="col-md-7">
                         <h4 id="event-title" class="fw-bold mb-3 text-primary"></h4>
@@ -487,11 +507,21 @@
             .addClass(`badge ${badgeClass}`)
             .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
 
-        // Handle image
-        const imagePath = event.cover_image
-            ? `/${event.cover_image}`
-            : "/images/no-image.png";
-        $("#event-image").attr("src", imagePath).attr("alt", event.title);
+        /// IMAGE HANDLING
+        const imagePath = event.cover_image 
+            ? `/${event.cover_image}` 
+            : null;
+
+        if (imagePath) {
+            $("#event-image")
+                .show()
+                .attr("src", imagePath);
+
+            $("#no-image-text").addClass("d-none");
+        } else {
+            $("#event-image").hide();
+            $("#no-image-text").removeClass("d-none");
+        }
         },
         error: function () {
         $("#viewEventModal .modal-title").text("Error");

@@ -204,7 +204,7 @@ class AdminController extends Controller
 
         $user->delete();
 
-        return redirect()->back()->with('success', 'User deleted successfully.');
+        return response()->json('success', 'User deleted successfully.');
     }
 
 
