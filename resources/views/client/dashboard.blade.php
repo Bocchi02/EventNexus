@@ -521,7 +521,7 @@
         } else {
             $("#event-image").hide();
             $("#no-image-text").removeClass("d-none");
-        }
+        }   
         },
         error: function () {
         $("#viewEventModal .modal-title").text("Error");
