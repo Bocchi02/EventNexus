@@ -358,7 +358,7 @@
                                 '<ul class="dropdown-menu dropdown-menu-end m-0">' +
                                 `<li><a href="javascript:;" class="dropdown-item toggle-status" data-id="${full.id}" data-status="${full.status}">${full.status === 'active' ? 'Deactivate' : 'Activate'}</a></li>` +
                                 '<div class="dropdown-divider"></div>' +
-                                `<li><a href="${deleteUrl}" class="dropdown-item text-danger delete-record">Delete</a></li>` +
+                                `<li><a href="javascript:void(0);" class="dropdown-item text-danger delete-user-btn" data-id="${full.id} ">Delete</a></li>` +
                                 "</ul></div>" +
                                 '<a href="javascript:;" class="btn btn-icon item-edit editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal"><i class="bx bx-edit bx-md"></i></a>'
                             );
@@ -556,7 +556,67 @@ $(document).on("click", ".toggle-status", function () {
     });
 });
 
+  // Delete User
+  $.ajaxSetup({
+      headers: {
+          "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
+      }
+  });
 
-      </script>
+  $(document).on("click", ".delete-user-btn", function (e) {
+
+      e.preventDefault(); 
+
+      const userId = $(this).data("id");
+
+      Swal.fire({
+          title: "Delete this user?",
+          text: "This action cannot be undone.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Delete",
+          buttonsStyling: false,
+          customClass: {
+              confirmButton: "btn btn-danger me-2",
+              cancelButton: "btn btn-secondary"
+          }
+
+      }).then((result) => {
+
+          if (!result.isConfirmed) return;
+
+          $.ajax({
+              url: `/admin/users/delete/${userId}`,
+              type: "POST",
+
+              success: function () {
+
+                  Swal.fire({
+                      title: "Deleted!",
+                      text: "User account has been removed.",
+                      icon: "success",
+                      timer: 1500,
+                      showConfirmButton: false
+                  }).then(() => {
+                      dt_basic_table.DataTable().ajax.reload();
+                  });
+              },
+
+              error: function (xhr) {
+
+                  Swal.fire(
+                      "Error!",
+                      xhr.responseJSON?.message || "Failed to delete user.",
+                      "error"
+                  );
+              }
+          });
+
+      });
+  });
+
+
+
+</script>
 
 @endsection

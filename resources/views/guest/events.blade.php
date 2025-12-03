@@ -22,6 +22,23 @@
     .event-image-container:hover {
         transform: scale(1.02);
     }
+    /* Fallback Text */
+    .no-image-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(248, 249, 250, 0.85);
+    color: #6c757d;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 0.75rem;
+    z-index: 1;
+    pointer-events: none;
+    }
     @media (max-width: 767.98px) {
         .event-image-container {
             max-width: 100%;
@@ -66,27 +83,69 @@
                         <!-- Image Section -->
                         <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 d-flex justify-content-center">
                             <div class="event-image-container">
-                                <img id="event-image-guest" src="/images/no-image.png" alt="Event Cover">
+                                <img id="event-image" src="" alt="Event Cover">
+                                <div id="no-image-text" class="no-image-text d-none">No Image</div>
                             </div>
                         </div>
 
                         <!-- Details Section -->
                         <div class="col-md-7">
-                            <h5 id="event-title-guest" class="fw-bold mb-3"></h5>
-                            {{-- Changed Client to Organizer --}}
-                            <p><strong>Organizer:</strong> <span id="event-organizer-guest"></span></p> 
-                            <p><strong>Venue:</strong> <span id="event-venue-guest"></span></p>
-                            <p><strong>Start:</strong> <span id="event-start-guest"></span></p>
-                            <p><strong>End:</strong> <span id="event-end-guest"></span></p>
-                            <p><strong>Status:</strong> <span id="event-status-guest" class="badge bg-label-info"></span></p>
-                            <p class="mt-3"><strong>Description:</strong></p>
-                            <p id="event-description-guest" class="text-muted"></p>
+                            <h4 id="event-title" class="fw-bold mb-3 text-primary"></h4>
+
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-user-pin text-primary me-2 fs-5"></i>
+                                        <p class="mb-0"><strong>Client:</strong> <span id="event-client"></span></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-map text-primary me-2 fs-5"></i>
+                                        <p class="mb-0"><strong>Venue:</strong> <span id="event-venue"></span></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-group text-primary me-2 fs-5"></i>
+                                        <p class="mb-0"><strong>Capacity:</strong> <span id="event-capacity"></span></p>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-time text-primary me-2 fs-5"></i>
+                                        <p class="mb-0"><strong>Start:</strong> <span id="event-start"></span></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-time-five text-primary me-2 fs-5"></i>
+                                        <p class="mb-0"><strong>End:</strong> <span id="event-end"></span></p>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bx bx-info-circle text-primary me-2 fs-5"></i>
+                                        <p class="mb-0">
+                                            <strong>Status:</strong>
+                                            <span id="event-status" class="badge bg-label-info ms-1"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h6 class="fw-bold text-secondary">Description</h6>
+                            <p id="event-description" class="text-muted mt-2"></p>
+                        </div>
+
                         </div>
                     </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -229,54 +288,106 @@
         }
     });
 
-    //  Guest-side Modal Handler for View Details
     $(document).on("click", ".view-event-btn", function () {
-        const eventId = $(this).data("id");
+  const eventId = $(this).data("id");
 
-        // Show loading state
-        $("#viewEventModal .modal-title").text("Loading...");
-        $("#event-title-guest, #event-organizer-guest, #event-venue-guest, #event-start-guest, #event-end-guest, #event-status-guest").text("");
-        $("#event-description-guest").text("Loading...");
-        $("#event-image-guest").attr("src", "").attr("alt", "Loading...");
-        $("#viewEventModal").modal("show");
+  // Show loading state
+  $("#viewEventModal .modal-title").text("Loading...");
+  $("#event-title, #event-client, #event-venue, #event-start, #event-end, #event-status").text("");
+  $("#event-description").text("Loading...");
+  $("#event-image").attr("src", "").attr("alt", "Loading...");
+  $("#viewEventModal").modal("show");
 
-        // Fetch details from the guest endpoint
-        $.ajax({
-            url: GUEST_EVENT_DETAIL_URL + eventId, // Assumes a route like /guest/events/{id}
-            method: "GET",
-            success: function (event) {
-                // Ensure the dates exist before trying to format
-                const start = event.start_date ? new Date(event.start_date).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : 'N/A';
-                const end = event.end_date ? new Date(event.end_date).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : 'N/A';
+  // Fetch details
+  $.ajax({
+    url: `/guest/events/${eventId}`,
+    method: "GET",
+    success: function (event) {
+      const start = new Date(event.start_date).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const end = new Date(event.end_date).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
 
-                // Update modal
-                $("#viewEventModal .modal-title").text(event.title);
-                $("#event-title-guest").text(event.title);
-                // The organizer data must be eager loaded in the controller
-                $("#event-organizer-guest").text(event.organizer?.full_name || "Organizer Not Found"); 
-                $("#event-venue-guest").text(event.venue);
-                $("#event-start-guest").text(start);
-                $("#event-end-guest").text(end);
-                $("#event-description-guest").text(event.description ?? "No description provided.");
+      // Update modal
+      $("#viewEventModal .modal-title").text(event.title);
+      $("#event-title").text(event.title);
+      $("#event-client").text(event.client?.full_name || "Unknown Client");
+      $("#event-venue").text(event.venue);
+      $("#event-capacity").text(event.capacity ? event.capacity + ' Guests' : 'Unlimited');
+      if (event.capacity) {
+            let accepted = event.accepted_count || 0; // Value from Controller
+            let remaining = event.capacity - accepted;
+            
+            // Text formatting
+            let seatsText = `${remaining} seats left`;
+            
+            // Logic: If full, show 'Sold Out' in red. If available, show green.
+            if (remaining <= 0) {
+                $("#event-seats-left")
+                    .removeClass("text-success")
+                    .addClass("text-danger")
+                    .text("Full / Fully Booked");
+            } else {
+                $("#event-seats-left")
+                    .removeClass("text-danger")
+                    .addClass("text-success")
+                    .text(seatsText);
+            }
+        } else {
+            $("#event-seats-left").text("Unlimited");
+        }
+        
+      $("#event-start").text(start);
+      $("#event-end").text(end);
+      $("#event-description").text(event.description ?? "No description provided.");
 
-                // Update status badge
-                const statusColors = { upcoming: "bg-label-info", ongoing: "bg-label-success", completed: "bg-label-primary", cancelled: "bg-label-danger" };
-                const badgeClass = statusColors[event.status] || "bg-label-secondary";
-                $("#event-status-guest")
-                    .removeClass()
-                    .addClass(`badge ${badgeClass}`)
-                    .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
+      // Update badge color
+      const statusColors = {
+        upcoming: "bg-label-info",
+        ongoing: "bg-label-success",
+        completed: "bg-label-primary",
+        cancelled: "bg-label-danger",
+      };
+      const badgeClass = statusColors[event.status] || "bg-label-secondary";
+      $("#event-status")
+        .removeClass()
+        .addClass(`badge ${badgeClass}`)
+        .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
 
-                // Handle image
-                const imagePath = event.cover_image ? `/${event.cover_image}` : "/images/no-image.png";
-                $("#event-image-guest").attr("src", imagePath).attr("alt", event.title);
-            },
-            error: function () {
-                $("#viewEventModal .modal-title").text("Error");
-                $("#event-description-guest").text("Failed to load event details. Please try again.");
-            },
-        });
-    });
+      /// IMAGE HANDLING
+        const imagePath = event.cover_image 
+            ? `/${event.cover_image}` 
+            : null;
+
+        if (imagePath) {
+            $("#event-image")
+                .show()
+                .attr("src", imagePath);
+
+            $("#no-image-text").addClass("d-none");
+        } else {
+            $("#event-image").hide();
+            $("#no-image-text").removeClass("d-none");
+        }
+    },
+    error: function () {
+      $("#viewEventModal .modal-title").text("Error");
+      $("#event-description").text("Failed to load event details. Please try again.");
+    },
+  });
+});
 
     // Accept Invitation Handler
     $(document).on("click", ".accept-invite-btn", function () {

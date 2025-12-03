@@ -35,7 +35,7 @@
                           </div>
                           <div class="flex-grow-1">
                             <h6 class="mb-0">{{ Auth::user()->full_name }}</h6>
-                            <small class="text-muted">{{ Auth::user()->getRoleNames()->first() ?? 'No role assigned' }}</small>
+                            <small class="text-muted">{{ ucfirst(Auth::user()->getRoleNames()->first() ?? 'No role assigned') }}</small>
                           </div>
                         </div>
                       </a>

@@ -35,7 +35,7 @@ Route::middleware(['auth', RoleMiddleware::class.':admin'])->group(function () {
     Route::post('/admin/users/store', [AdminController::class, 'storeUser'])->name('admin.storeUser');
     Route::post('/admin/users/{id}/assign-role', [AdminController::class, 'assignRole'])->name('admin.assignRole');
     Route::post('/admin/users/toggle-status/{id}', [AdminController::class, 'toggleStatus'])->name('admin.toggleStatus');
-    Route::get('/admin/users/delete/{id}', [AdminController::class, 'deleteUser'])->name('admin.deleteUser');
+    Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUser'])->name('admin.deleteUser');
     Route::get('/admin/getUsers', [AdminController::class, 'getUsers'])->name('users.data'); //get user data for datatable
     Route::post('/admin/users/edit/{id}', [AdminController::class, 'editUser'])->name('admin.editUser');
 });

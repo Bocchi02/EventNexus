@@ -22,10 +22,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
 
-            // Optional profile fields
-            $table->string('phone_number')->nullable();
-            $table->string('profile_image')->nullable(); // for user photo
-
             // Account status
             $table->enum('status', ['active', 'inactive'])->default('active');
 

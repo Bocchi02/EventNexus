@@ -33,7 +33,7 @@ class InviteGuestController extends Controller
         // --- SCENARIO 1: USER DOES NOT EXIST (AUTO-REGISTER) ---
         if (!$user) {
             // 1. Set the default password
-            $rawPassword = 'password';
+            $rawPassword = Str::random(8);
 
             // 2. Create the User immediately
             $user = User::create([
@@ -70,7 +70,7 @@ class InviteGuestController extends Controller
             }
 
             // Send standard RSVP email (No password needed)
-            Mail::to($user->email)->send(new \App\Mail\EventRSVP($event, $user));
+            // Mail::to($user->email)->send(new \App\Mail\EventRSVP($event, $user));
 
             return response()->json(['message' => 'Invitation sent to existing user.'], 200);
         }

@@ -54,7 +54,9 @@
       <script src="{{ asset('assets/vendor/js/template-customizer.js') }}"></script>
       <script src="{{ asset('assets/js/config.js') }}"></script>
       <!-- Sweetalert cdn -->
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <link rel="stylesheet" href="{{ asset('assets/vendor/libs/animate-css/animate.css')}}" />
+      <link rel="stylesheet" href="{{ asset('assets/vendor/libs/sweetalert2/sweetalert2.css')}}" />
+      <script src="{{asset('assets/vendor/libs/sweetalert2/sweetalert2.js')}}"></script>
     </head>
 
     <body>

@@ -18,5 +18,5 @@ Login to Dashboard
 We recommend changing your password after your first login.
 
 Thanks,<br>
-{{ config('app.name') }}
+EventNexus
 </x-mail::message>

@@ -70,7 +70,7 @@
                     <input class="form-check-input" type="checkbox" id="remember-me" />
                     <label class="form-check-label" for="remember-me"> Remember Me </label>
                   </div>
-                  <a href="auth-forgot-password-cover.html">
+                  <a href="{{ route('password.request') }}">
                     <p class="mb-0">Forgot Password?</p>
                   </a>
                 </div>
