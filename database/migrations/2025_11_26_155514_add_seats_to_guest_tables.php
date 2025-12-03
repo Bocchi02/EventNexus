@@ -12,10 +12,5 @@ return new class extends Migration
         Schema::table('event_guest', function (Blueprint $table) {
             $table->integer('seats')->default(1)->after('status');
         });
-
-        // 2. Add seats to the temporary pending invitations
-        Schema::table('pending_guests', function (Blueprint $table) {
-            $table->integer('seats')->default(1)->after('email');
-        });
     }
 };
