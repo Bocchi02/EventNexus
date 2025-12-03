@@ -3,64 +3,45 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-
-use App\Models\PendingGuest;
+use App\Models\User;
+use App\Models\Event;
 
 class GuestInvitationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $pending;
+    public $user;
+    public $event;
+    public $password;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(PendingGuest $pending)
+    public function __construct(User $user, Event $event, $password)
     {
-        $this->pending = $pending;
+        $this->user = $user;
+        $this->event = $event;
+        $this->password = $password;
     }
 
-    public function build()
-    {
-        return $this->subject('You are invited to an event')
-            ->markdown('emails.guest_invite', [
-                'pending' => $this->pending,
-                'link' => route('invitation.accept', $this->pending->token)
-            ]);
-    }
-
-
-
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Guest Invitation Mail',
+            subject: 'Welcome to EventNexus - Account Created',
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
             markdown: 'emails.guest_invite',
+            with: [
+                'loginUrl' => route('login'),
+            ]
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

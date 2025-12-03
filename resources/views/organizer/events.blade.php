@@ -1,30 +1,53 @@
 @extends('layouts.app')
 @section('title', 'My Events | EventNexus')
 @section('styles')
-<style>    /* Event Image Container */
+<style>
+/* Event Image Container */
 .event-image-container {
   position: relative;
   width: 100%;
-  max-width: 420px; /* approximate portrait letter size in modal-xl */
-  aspect-ratio: 3 / 4; /* maintains portrait look */
+  max-width: 420px;                /* portrait letter-ish size */
+  aspect-ratio: 3 / 4;
   border-radius: 0.75rem;
   overflow: hidden;
   background-color: #f8f9fa;
   box-shadow: 0 0.5rem 1rem rgba(58, 53, 65, 0.15);
   transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* Image */
 .event-image-container img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+/* Hover effect */
 .event-image-container:hover {
   transform: scale(1.02);
 }
+/* Fallback Text */
+.no-image-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 249, 250, 0.85);
+  color: #6c757d;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 0.75rem;
+  z-index: 1;
+  pointer-events: none;
+}
 
-/* Make it smaller on smaller modals or mobile screens */
+/* Responsive Adjustments */
 @media (max-width: 1199.98px) {
   .event-image-container {
     max-width: 320px;
@@ -34,9 +57,10 @@
 @media (max-width: 767.98px) {
   .event-image-container {
     max-width: 100%;
-    aspect-ratio: 4 / 3; /* more landscape for small screens */
+    aspect-ratio: 4 / 3;
   }
 }
+
 </style>
 @endsection
 @section('content')
@@ -134,7 +158,7 @@
             </div>
             </div>
 
-            <!-- Modal to edit event record huehue -->
+            <!-- Modal to edit event record -->
             <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
@@ -217,7 +241,6 @@
             </div>
         </div>
             <!-- Modal to view record -->
-              <!-- Modal -->
             <!-- Modal -->
             <div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModal" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -232,8 +255,10 @@
                         <!-- Image Section -->
                         <div class="col-xl-5 col-lg-5 col-md-6 col-sm-12 d-flex justify-content-center">
                             <div class="event-image-container">
-                            <img id="event-image" src="/images/no-image.png" alt="Event Cover">
+                                <img id="event-image" src="" alt="Event Cover">
+                                <div id="no-image-text" class="no-image-text d-none">No Image</div>
                             </div>
+
                         </div>
 
                         <!-- Details Section -->
@@ -516,6 +541,13 @@
             $("div.head-label").html('<h5 class="card-title mb-0">All Events</h5>');
     }
    });
+   function getSwalThemeClass() {
+        const theme = document.documentElement.getAttribute("data-theme");
+        return theme === "dark" || theme === "semi-dark"
+            ? "swal2-popup-dark"
+            : "swal2-popup-light";
+    }
+
     $(document).ready(function () {
     $("#addEventBtn").on("click", function (e) {
         e.preventDefault();
@@ -642,11 +674,21 @@ $(document).on("click", ".view-event-btn", function () {
         .addClass(`badge ${badgeClass}`)
         .text(event.status.charAt(0).toUpperCase() + event.status.slice(1));
 
-      // Handle image
-      const imagePath = event.cover_image
-        ? `/${event.cover_image}`
-        : "/images/no-image.png";
-      $("#event-image").attr("src", imagePath).attr("alt", event.title);
+      /// IMAGE HANDLING
+        const imagePath = event.cover_image 
+            ? `/${event.cover_image}` 
+            : null;
+
+        if (imagePath) {
+            $("#event-image")
+                .show()
+                .attr("src", imagePath);
+
+            $("#no-image-text").addClass("d-none");
+        } else {
+            $("#event-image").hide();
+            $("#no-image-text").removeClass("d-none");
+        }
     },
     error: function () {
       $("#viewEventModal .modal-title").text("Error");
@@ -684,9 +726,14 @@ $(document).on("click", ".cancel-event-btn", function () {
     text: "This action will mark the event as 'Cancelled'.",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, cancel it",
+    confirmButtonText: "Cancel Event",
+    cancelButtonText: "Back",
+    buttonsStyling: false,
+    customClass: {
+        confirmButton: "btn btn-label-danger me-2",
+        cancelButton: "btn btn-label-secondary ms-2"
+    }
+
   }).then((result) => {
     if (result.isConfirmed) {
       $.ajax({
@@ -722,8 +769,7 @@ $(document).on('click', '.editEventBtn', function() {
     
     // Fetch Event Data
     $.ajax({
-        url: '/organizer/events/' + eventId, // Uses your existing 'show' method
-        type: 'GET',
+        url: '/organizer/events/' + eventId,
         success: function(data) {
             // Populate fields
             $('#edit_event_id').val(data.id);
@@ -755,19 +801,23 @@ $('#editEventForm').on('submit', function(e) {
     var formData = new FormData(this);
     
     $.ajax({
-        url: '/organizer/events/' + eventId + '/update', // Ensure this route exists!
+        url: '/organizer/events/' + eventId + '/update',
         type: 'POST',
         data: formData,
         processData: false,
         contentType: false,
         success: function(response) {
             $('#editEventModal').modal('hide');
-            Swal.fire('Success', response.message || 'Event updated successfully!', 'success');
-            
-            // Reload DataTable
-            if (typeof dt_basic !== "undefined") {
-                dt_basic.ajax.reload(null, false);
-            }
+            Swal.fire({
+                title: 'Success',
+                text: response.message || 'Event updated successfully!',
+                icon: 'success',
+                timer: 1500,           // auto close after 1.5s
+                showConfirmButton: false,
+            }).then(() => {
+                // Reload the DataTable
+                $('.datatables-basic').DataTable().ajax.reload();
+            });
         },
         error: function(xhr) {
             var errors = xhr.responseJSON?.errors;
@@ -801,10 +851,13 @@ $(document).on("click", ".delete-event-btn", function () {
         text: "This event will be permanently deleted.",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, delete it",
-        cancelButtonText: "No, keep it",
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#6c757d"
+        confirmButtonText: "Delete",
+        cancelButtonText: "Back",
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: "btn btn-label-danger me-2",
+            cancelButton: "btn btn-label-secondary ms-2"
+        }
     }).then((result) => {
 
         if (result.isConfirmed) {
@@ -845,12 +898,5 @@ $(document).on("click", ".delete-event-btn", function () {
     });
 
 });
-
-
-
-
-
-
-
 </script>
 @endsection

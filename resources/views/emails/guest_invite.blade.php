@@ -1,14 +1,22 @@
 <x-mail::message>
-# You have been invited!
+# Welcome, {{ $user->firstname }}!
 
-You have been invited to join the event. Please click the button below to create your guest account and view the details.
+You have been invited to attend **{{ $event->title }}**. 
 
-<x-mail::button :url="$link">
-Accept Invitation
+Since you are new to EventNexus, we have automatically created an account for you. Please use the credentials below to log in and respond to your invitation.
+
+<x-mail::panel>
+**Login URL:** [{{ route('login') }}]({{ route('login') }}) <br>
+**Email:** {{ $user->email }} <br>
+**Password:** {{ $password }}
+</x-mail::panel>
+
+<x-mail::button :url="$loginUrl">
+Login to Dashboard
 </x-mail::button>
 
-If you did not request this invitation, no further action is required.
+We recommend changing your password after your first login.
 
 Thanks,<br>
-{{ config('app.name') }}
+EventNexus
 </x-mail::message>
