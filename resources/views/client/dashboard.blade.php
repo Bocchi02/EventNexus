@@ -394,7 +394,6 @@
 </div>
 @endsection
 
-@section('script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Get the event start date from Blade
@@ -522,7 +521,7 @@
         } else {
             $("#event-image").hide();
             $("#no-image-text").removeClass("d-none");
-        }
+        }   
         },
         error: function () {
         $("#viewEventModal .modal-title").text("Error");
@@ -532,4 +531,3 @@
     });
   });
 </script>
-@endsection
