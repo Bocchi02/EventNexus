@@ -394,7 +394,6 @@
 </div>
 @endsection
 
-@section('script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Get the event start date from Blade
@@ -532,4 +531,3 @@
     });
   });
 </script>
-@endsection
