@@ -361,7 +361,7 @@
                         return `
                             <div class="d-flex flex-column">
                                 <span class="fw-semibold">${full.title}</span>
-                                <small class="text-muted">Client: ${full.client}</small>
+                                <small class="text-muted">Client: ${full.client.firstname} ${full.client.lastname}</small>
                             </div>`;
                     },
                 },
